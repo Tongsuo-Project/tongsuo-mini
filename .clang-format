@@ -175,4 +175,5 @@ SpaceBeforeSquareBrackets: false
 BitFieldColonSpacing: Both
 Standard:        Latest
 UseTab:          Never
-LineEnding:      LF
+UseCRLF: false
+#LineEnding:      LF

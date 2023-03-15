@@ -13,6 +13,7 @@ include_directories(include)
 
 set(LIB_SRC
     src/version.c
+    src/log.c
 )
 
 add_library(tongsuo-mini ${LIB_SRC})
@@ -25,3 +26,9 @@ add_test(NAME test
     COMMAND python3 -m pytest
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
 )
+
+OPTION(DEBUG "define TSM_DEBUG" OFF)
+if (DEBUG)
+    message(STATUS "TSM_DEBUG=on")
+    add_definitions(-DTSM_DEBUG)
+endif()
