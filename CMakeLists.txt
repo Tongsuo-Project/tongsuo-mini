@@ -2,6 +2,14 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
 PROJECT(tongsuo-mini)
 
+if (MSVC)
+    # warning level 4 and all warnings as errors
+    add_compile_options(/W4 /WX)
+else()
+    # lots of warnings and all warnings as errors
+    add_compile_options(-Wall -Wextra -pedantic -Werror)
+endif()
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_PATCH 0)
@@ -11,12 +19,8 @@ add_definitions(-DTONGSUO_MINI_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERS
 
 include_directories(include)
 
-set(LIB_SRC
-    src/version.c
-    src/log.c
-)
-
-add_library(tongsuo-mini ${LIB_SRC})
+file(GLOB_RECURSE lib_sources CONFIGURE_DEPENDS "src/*.c")
+add_library(tongsuo-mini ${lib_sources})
 
 add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
