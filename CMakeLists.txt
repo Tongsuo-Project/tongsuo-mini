@@ -19,8 +19,39 @@ add_definitions(-DTONGSUO_MINI_VERSION="${VERSION_MAJOR}.${VERSION_MINOR}.${VERS
 
 include_directories(include)
 
-file(GLOB_RECURSE lib_sources CONFIGURE_DEPENDS "src/*.c")
-add_library(tongsuo-mini ${lib_sources})
+set(libsrc
+    src/error.c
+    src/mem.c
+    src/pool.c
+    src/version.c
+)
+
+OPTION(WITH_DEBUG "Enable debug" OFF)
+if (DEBUG)
+    message(STATUS "DEBUG=on")
+    add_definitions(-DDEBUG)
+else()
+    add_definitions(-DNDEBUG)
+endif()
+
+OPTION(WITH_LOG "Build with log module" OFF)
+if(WITH_LOG)
+    message(STATUS "WITH_LOG=on")
+    add_definitions(-DTSM_LOG)
+    list(APPEND libsrc src/log.c)
+endif()
+
+OPTION(WITH_ASN1 "Build with asn1 module" OFF)
+if (WITH_ASN1)
+    message(STATUS "WITH_ASN1=on")
+    list(APPEND libsrc src/asn1.c)
+
+    add_executable(test_asn1 test/test_asn1.c)
+    target_include_directories(test_asn1 PUBLIC test)
+    target_link_libraries(test_asn1 LINK_PUBLIC tongsuo-mini)
+endif()
+
+add_library(tongsuo-mini ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
@@ -30,9 +61,3 @@ add_test(NAME test
     COMMAND python3 -m pytest
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
 )
-
-OPTION(DEBUG "define TSM_DEBUG" OFF)
-if (DEBUG)
-    message(STATUS "TSM_DEBUG=on")
-    add_definitions(-DTSM_DEBUG)
-endif()

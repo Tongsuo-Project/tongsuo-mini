@@ -7,9 +7,9 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#include <internal/log.h>
-#include <internal/mem.h>
-#include <internal/pool.h>
+#include "internal/log.h"
+#include "internal/mem.h"
+#include "internal/pool.h"
 #include <stdlib.h>
 
 typedef struct {
@@ -43,14 +43,14 @@ tsm_pool_t *ngx_create_pool(size_t size)
     size = size - sizeof(tsm_pool_t);
     p->current = p;
 
-    tsm_debug("create pool %p:%z", p, size);
+    LOGD("create pool %p:%z", p, size);
     return p;
 }
 
 void tsm_destroy_pool(tsm_pool_t *pool)
 {
     tsm_pool_t *p, *n;
-    tsm_debug("destroy pool %p", pool);
+    LOGD("destroy pool %p", pool);
 
     for (p = pool, n = pool->d.next;; p = n, n = n->d.next) {
         tsm_free(p);
@@ -66,7 +66,7 @@ void *tsm_palloc(tsm_pool_t *pool, size_t size)
     unsigned char *m;
     tsm_pool_t *p;
 
-    tsm_debug("palloc %p:%z", pool, size);
+    LOGD("palloc %p:%z", pool, size);
 
     p = pool->current;
 
@@ -128,6 +128,6 @@ void *tsm_pcalloc(tsm_pool_t *pool, size_t size)
         tsm_memzero(p, size);
     }
 
-    tsm_debug("pcalloc %p:%p:%z", pool, p, size);
+    LOGD("pcalloc %p:%p:%z", pool, p, size);
     return p;
 }
