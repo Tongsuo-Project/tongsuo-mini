@@ -29,6 +29,9 @@ enum {
 
 const char *tsm_error_string(int err);
 
+#define TSM_OK      0
+#define TSM_FAILED -1
+
 # ifdef __cplusplus
 }
 # endif

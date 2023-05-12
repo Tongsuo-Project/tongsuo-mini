@@ -51,6 +51,16 @@ if (WITH_ASN1)
     target_link_libraries(test_asn1 LINK_PUBLIC tongsuo-mini)
 endif()
 
+OPTION(WITH_SM3 "Build with SM3 module" OFF)
+if (WITH_SM3)
+    message(STATUS "WITH_SM3=on")
+    list(APPEND libsrc src/sm3.c)
+
+    add_executable(test_sm3 test/test_sm3.c)
+    target_include_directories(test_sm3 PUBLIC test)
+    target_link_libraries(test_sm3 LINK_PUBLIC tongsuo-mini)
+endif()
+
 add_library(tongsuo-mini ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
