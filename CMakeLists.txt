@@ -49,6 +49,10 @@ if (WITH_ASN1)
     add_executable(test_asn1 test/test_asn1.c)
     target_include_directories(test_asn1 PUBLIC test)
     target_link_libraries(test_asn1 LINK_PUBLIC tongsuo-mini)
+    add_test(NAME test_asn1
+        COMMAND python3 -m pytest test_asn1.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
 endif()
 
 OPTION(WITH_SM3 "Build with SM3 module" OFF)
@@ -59,6 +63,10 @@ if (WITH_SM3)
     add_executable(test_sm3 test/test_sm3.c)
     target_include_directories(test_sm3 PUBLIC test)
     target_link_libraries(test_sm3 LINK_PUBLIC tongsuo-mini)
+    add_test(NAME test_sm3
+        COMMAND python3 -m pytest test_sm3.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
 endif()
 
 add_library(tongsuo-mini ${libsrc})
@@ -67,7 +75,7 @@ add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
 
 enable_testing()
-add_test(NAME test
-    COMMAND python3 -m pytest
+add_test(NAME test_minisuo
+    COMMAND python3 -m pytest test_minisuo.py
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
 )
