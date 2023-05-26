@@ -66,7 +66,7 @@
 #define R2(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
    RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF1,GG1)
 
-tsm_sm3_ctx *tsm_sm3_init()
+tsm_sm3_ctx *tsm_sm3_init(void)
 {
     tsm_sm3_ctx *c = NULL;
 
@@ -360,13 +360,13 @@ int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md)
 
     ctx = tsm_sm3_init();
     if (ctx == NULL) {
-        return TSM_FAILED;
+        return ERR_INTERNAL_ERROR;
     }
     if (tsm_sm3_update(ctx, data, len) != TSM_OK) {
-        return TSM_FAILED;
+        return ERR_INTERNAL_ERROR;
     }
     if (tsm_sm3_final(ctx, md) != TSM_OK) {
-        return TSM_FAILED;
+        return ERR_INTERNAL_ERROR;
     }
 
     return TSM_OK;

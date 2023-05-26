@@ -29,7 +29,7 @@ enum {
 
 const char *tsm_error_string(int err);
 
-#define TSM_OK      0
+#define TSM_OK      ERR_NO_ERROR
 #define TSM_FAILED -1
 
 # ifdef __cplusplus

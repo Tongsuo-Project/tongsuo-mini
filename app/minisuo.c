@@ -58,7 +58,7 @@ static cmd_handler cmds[] = {
     {NULL, NULL}
 };
 
-#define N_CMD 1
+#define N_CMD (int)(sizeof(cmds)/sizeof(cmds[0]))
 
 void print_help(void)
 {
