@@ -55,6 +55,20 @@ if (WITH_ASN1)
     )
 endif()
 
+OPTION(WITH_SM3 "Build with SM3 module" OFF)
+if (WITH_SM3)
+    message(STATUS "WITH_SM3=on")
+    list(APPEND libsrc src/sm3.c)
+
+    add_executable(test_sm3 test/test_sm3.c)
+    target_include_directories(test_sm3 PUBLIC test)
+    target_link_libraries(test_sm3 LINK_PUBLIC tongsuo-mini)
+    add_test(NAME test_sm3
+        COMMAND python3 -m pytest test_sm3.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
+endif()
+
 add_library(tongsuo-mini ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
