@@ -7,25 +7,43 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#include <tongsuo/error.h>
+#include <tongsuo/minisuo.h>
 #include <stdlib.h>
 
+#ifdef TSM_ERRSTR
 static const char *errstr[] = {
-    [ERR_NO_ERROR] = "Success",
-    [ERR_INTERNAL_ERROR] = "Internal error",
-    [ERR_PASS_NULL_PARAM] = "Pass null param",
-    [ERR_MALLOC_FAILED] = "Malloc failed",
-    [ERR_OUT_OF_DATA] = "Out of data",
-    [ERR_BUFFER_OVERFLOW] = "Buffer overflow",
-    [ERR_UNEXPECTED_ASN1_TAG] = "Unexpected ASN1 tag",
-    [ERR_INVALID_ASN1_LENGTH] = "Invalid ASN1 length",
-    [ERR_INVALID_ASN1_VALUE] = "Invalid ASN1 value",
+    [TSM_OK] = "Success",
+    [TSM_ERR_INTERNAL_ERROR] = "Internal error",
+    [TSM_ERR_PASS_NULL_PARAM] = "Pass null param",
+    [TSM_ERR_MALLOC_FAILED] = "Malloc failed",
+    [TSM_ERR_OUT_OF_DATA] = "Out of data",
+    [TSM_ERR_BUFFER_OVERFLOW] = "Buffer overflow",
+    [TSM_ERR_BUFFER_TOO_SMALL] = "Buffer too small",
+    [TSM_ERR_UNEXPECTED_ASN1_TAG] = "Unexpected ASN1 tag",
+    [TSM_ERR_INVALID_ASN1_LENGTH] = "Invalid ASN1 length",
+    [TSM_ERR_INVALID_ASN1_VALUE] = "Invalid ASN1 value",
+    [TSM_ERR_WRONG_FINAL_BLOCK_LENGTH] = "Wrong length of final block",
+    [TSM_ERR_BAD_DECRYPT] = "Bad decrypt",
+    [TSM_ERR_WRONG_CIPH_MODE] = "Wrong cipher mode",
+    [TSM_ERR_INVALID_HEX_STR] = "Invalid hex string",
+    [TSM_ERR_DATA_NOT_MULTIPLE_OF_BLOCK_LENGTH] = "Data length not multiple of block length",
 };
+#endif
 
-const char *tsm_error_string(int err)
+const char *tsm_err2str(int err)
 {
-    if (err < ERR_NO_ERROR)
+    if (err == TSM_FAILED)
+        return "Failed";
+
+    if (err < TSM_OK)
         return NULL;
 
+#ifdef TSM_ERRSTR
     return errstr[err];
+#else
+    if (err == TSM_OK)
+        return "Success";
+    else
+        return "Error";
+#endif
 }

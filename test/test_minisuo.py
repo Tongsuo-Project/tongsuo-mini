@@ -5,6 +5,7 @@
 
 import tf
 
+
 def test_minisuo_version():
     tf.ok("minisuo -v")
     tf.ok("minisuo --version")

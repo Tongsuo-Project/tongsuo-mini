@@ -9,14 +9,20 @@ import subprocess
 
 current_dir = os.path.split(os.path.realpath(__file__))[0]
 
+
 def ok(cmd, input=None):
     """
     input should be bytes or None
     """
     print("$ " + cmd)
 
-    child = subprocess.Popen(cmd, stdout=subprocess.PIPE, stdin=subprocess.PIPE, shell=True,
-                             env=dict(PATH=os.path.join(os.path.dirname(current_dir), 'build')))
+    child = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stdin=subprocess.PIPE,
+        shell=True,
+        env=dict(PATH=os.path.join(os.path.dirname(current_dir), "build")),
+    )
 
     if input is not None:
         print(">")
@@ -32,3 +38,13 @@ def ok(cmd, input=None):
 
     print(output.decode("utf-8"))
     return output
+
+
+def writef(file, data):
+    with open(file, "wb") as f:
+        return f.write(data)
+
+
+def readf(file):
+    with open(file, "rb") as f:
+        return f.read()

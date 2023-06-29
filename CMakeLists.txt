@@ -10,6 +10,8 @@ else()
     add_compile_options(-Wall -Wextra -pedantic -Werror)
 endif()
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 9)
 set(VERSION_PATCH 0)
@@ -22,12 +24,16 @@ include_directories(include)
 set(libsrc
     src/error.c
     src/mem.c
+    src/str.c
     src/pool.c
     src/version.c
 )
 
+OPTION(WITH_ALL "Build with all modules" OFF)
+
 OPTION(WITH_DEBUG "Enable debug" OFF)
-if (DEBUG)
+
+if(WITH_DEBUG OR WITH_ALL)
     message(STATUS "DEBUG=on")
     add_definitions(-DDEBUG)
 else()
@@ -35,14 +41,23 @@ else()
 endif()
 
 OPTION(WITH_LOG "Build with log module" OFF)
-if(WITH_LOG)
+
+if(WITH_LOG OR WITH_ALL)
     message(STATUS "WITH_LOG=on")
     add_definitions(-DTSM_LOG)
     list(APPEND libsrc src/log.c)
 endif()
 
+OPTION(WITH_ERRSTR "Build with error string" OFF)
+
+if(WITH_ERRSTR OR WITH_ALL)
+    message(STATUS "WITH_ERRSTR=on")
+    add_definitions(-DTSM_ERRSTR)
+endif()
+
 OPTION(WITH_ASN1 "Build with asn1 module" OFF)
-if (WITH_ASN1)
+
+if(WITH_ASN1 OR WITH_ALL)
     message(STATUS "WITH_ASN1=on")
     list(APPEND libsrc src/asn1.c)
 
@@ -56,15 +71,33 @@ if (WITH_ASN1)
 endif()
 
 OPTION(WITH_SM3 "Build with SM3 module" OFF)
-if (WITH_SM3)
+
+if(WITH_SM3 OR WITH_ALL)
     message(STATUS "WITH_SM3=on")
     list(APPEND libsrc src/sm3.c)
+    add_definitions(-DTSM_HAVE_SM3)
 
     add_executable(test_sm3 test/test_sm3.c)
     target_include_directories(test_sm3 PUBLIC test)
     target_link_libraries(test_sm3 LINK_PUBLIC tongsuo-mini)
     add_test(NAME test_sm3
         COMMAND python3 -m pytest test_sm3.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
+endif()
+
+OPTION(WITH_SM4 "Build with SM4 module" OFF)
+
+if(WITH_SM4 OR WITH_ALL)
+    message(STATUS "WITH_SM4=on")
+    list(APPEND libsrc src/sm4.c)
+    add_definitions(-DTSM_HAVE_SM4)
+
+    add_executable(test_sm4_api test/test_sm4_api.c)
+    target_include_directories(test_sm4_api PUBLIC test)
+    target_link_libraries(test_sm4_api LINK_PUBLIC tongsuo-mini)
+    add_test(NAME test_sm4
+        COMMAND python3 -m pytest test_sm4.py
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     )
 endif()

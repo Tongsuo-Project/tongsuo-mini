@@ -47,7 +47,7 @@ BraceWrapping:
   SplitEmptyFunction: true
   SplitEmptyRecord: true
   SplitEmptyNamespace: true
-BreakBeforeBinaryOperators: All
+BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeConceptDeclarations: true
 BreakBeforeBraces: Linux
 BreakBeforeInheritanceComma: false

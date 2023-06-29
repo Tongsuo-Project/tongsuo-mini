@@ -359,14 +359,9 @@ int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md)
     tsm_sm3_ctx *ctx = NULL;
 
     ctx = tsm_sm3_init();
-    if (ctx == NULL) {
-        return ERR_INTERNAL_ERROR;
-    }
-    if (tsm_sm3_update(ctx, data, len) != TSM_OK) {
-        return ERR_INTERNAL_ERROR;
-    }
-    if (tsm_sm3_final(ctx, md) != TSM_OK) {
-        return ERR_INTERNAL_ERROR;
+    if (ctx == NULL || tsm_sm3_update(ctx, data, len) != TSM_OK
+        || tsm_sm3_final(ctx, md) != TSM_OK) {
+        return TSM_FAILED;
     }
 
     return TSM_OK;
