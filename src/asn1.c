@@ -34,7 +34,7 @@ int asn1_encode_header_tag(unsigned char **out, size_t *outl, int tag)
 int asn1_decode_header_tag(unsigned char **in, size_t inlen, int *tag)
 {
     if (inlen < 1)
-        return ERR_OUT_OF_DATA;
+        return TSM_ERR_OUT_OF_DATA;
 
     *tag = **in;
     (*in)++;
@@ -62,7 +62,7 @@ int asn1_encode_header_len(unsigned char **out, size_t *outl, size_t len)
     }
 
     if (n > 4)
-        return ERR_INTERNAL_ERROR;
+        return TSM_ERR_INTERNAL_ERROR;
 
     *outl += n + 1;
 
@@ -83,7 +83,7 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
     unsigned char *end = *in + inlen;
 
     if (inlen < 1)
-        return ERR_OUT_OF_DATA;
+        return TSM_ERR_OUT_OF_DATA;
 
     if ((**in & 0x80) == 0) {
         *len = *(*in)++;
@@ -91,7 +91,7 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
         switch (**in & 0x7F) {
         case 1:
             if (inlen < 2)
-                return ERR_OUT_OF_DATA;
+                return TSM_ERR_OUT_OF_DATA;
 
             *len = (*in)[1];
             (*in) += 2;
@@ -99,7 +99,7 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
 
         case 2:
             if (inlen < 3)
-                return ERR_OUT_OF_DATA;
+                return TSM_ERR_OUT_OF_DATA;
 
             *len = ((size_t)(*in)[1] << 8) | (*in)[2];
             (*in) += 3;
@@ -107,7 +107,7 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
 
         case 3:
             if (inlen < 4)
-                return ERR_OUT_OF_DATA;
+                return TSM_ERR_OUT_OF_DATA;
 
             *len = ((size_t)(*in)[1] << 16) | ((size_t)(*in)[2] << 8) | (*in)[3];
             (*in) += 4;
@@ -115,7 +115,7 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
 
         case 4:
             if (inlen < 5)
-                return ERR_OUT_OF_DATA;
+                return TSM_ERR_OUT_OF_DATA;
 
             *len = ((size_t)(*in)[1] << 24) | ((size_t)(*in)[2] << 16) | ((size_t)(*in)[3] << 8)
                    | (*in)[4];
@@ -123,12 +123,12 @@ int asn1_decode_header_len(unsigned char **in, size_t inlen, size_t *len)
             break;
 
         default:
-            return ERR_INVALID_ASN1_LENGTH;
+            return TSM_ERR_INVALID_ASN1_LENGTH;
         }
     }
 
     if (*len > (size_t)(end - *in))
-        return ERR_OUT_OF_DATA;
+        return TSM_ERR_OUT_OF_DATA;
 
     return 0;
 }
@@ -149,7 +149,7 @@ int asn1_decode_header(unsigned char **in, size_t inlen, int tag, size_t *len)
     int t;
 
     if (asn1_decode_header_tag(in, inlen, &t) || t != tag)
-        return ERR_UNEXPECTED_ASN1_TAG;
+        return TSM_ERR_UNEXPECTED_ASN1_TAG;
 
     if (len)
         return asn1_decode_header_len(in, inlen - 1, len);
@@ -178,7 +178,7 @@ int asn1_decode_bool(unsigned char **in, size_t inlen, int *val)
     size_t len;
 
     if (asn1_decode_header(in, inlen, TONGSUO_ASN1_BOOLEAN, &len) || len != 1)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     *val = (**in == 0xFF) ? 1 : 0;
     (*in)++;
@@ -192,7 +192,7 @@ static int asn1_encode_tag_int(unsigned char **out, size_t *outl, int tag, int v
     int err, len;
 
     if (val < 0)
-        return ERR_INVALID_ASN1_VALUE;
+        return TSM_ERR_INVALID_ASN1_VALUE;
 
     len = 0;
     do {
@@ -243,11 +243,11 @@ int asn1_decode_tag_int(unsigned char **in, size_t inlen, int tag, int *val)
      * or 0A0100 for ENUMERATED tags
      */
     if (len == 0)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     /* Reject negative integer */
     if ((**in & 0x80) != 0)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     /* Skip leading zeros. */
     while (len > 0 && **in == 0) {
@@ -258,10 +258,10 @@ int asn1_decode_tag_int(unsigned char **in, size_t inlen, int tag, int *val)
     /* Reject integers that don't fit in an int. This code assumes that
      * the int type has no padding bit. */
     if (len > sizeof(int))
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     if (len == sizeof(int) && (**in & 0x80) != 0)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     *val = 0;
     while (len-- > 0) {
@@ -313,11 +313,11 @@ int asn1_decode_bit_string(unsigned char **in, size_t inlen, unsigned char *bs, 
         return err;
 
     if (len < 1)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     padding = **in;
     if (padding > 7)
-        return ERR_INVALID_ASN1_VALUE;
+        return TSM_ERR_INVALID_ASN1_VALUE;
 
     len -= 1;
     (*in)++;
@@ -346,7 +346,7 @@ int asn1_decode_null(unsigned char **in, size_t inlen)
     size_t len;
 
     if (asn1_decode_header(in, inlen, TONGSUO_ASN1_NULL, &len) || len != 0)
-        return ERR_INVALID_ASN1_LENGTH;
+        return TSM_ERR_INVALID_ASN1_LENGTH;
 
     return 0;
 }

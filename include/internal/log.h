@@ -11,7 +11,7 @@
 # define TONGSUOMINI_LOG_H
 # pragma once
 
-# include <tongsuo/error.h>
+# include <tongsuo/minisuo.h>
 # include <assert.h>
 
 # define TSM_LOG_DEBUG 0
@@ -32,7 +32,7 @@ void tsm_log(const char *file, int line, int level, const char *fmt, ...);
    if (!(x)) {                                                                                     \
     LOGE("Check '%s' failed on %s:%d", #x, __FILE__, __LINE__);                                    \
     assert(0);                                                                                     \
-    return ERR_PASS_NULL_PARAM;                                                                    \
+    return TSM_ERR_PASS_NULL_PARAM;                                                                \
    }                                                                                               \
   } while (0);
 

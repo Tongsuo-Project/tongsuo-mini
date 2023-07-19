@@ -16,6 +16,7 @@ def setup_temp1():
 
     os.remove(tmp)
 
+
 @pytest.fixture
 def setup_temp2():
     _, tmp1 = tempfile.mkstemp(text=True)

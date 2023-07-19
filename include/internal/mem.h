@@ -18,4 +18,6 @@ void *tsm_calloc(size_t size);
 void tsm_free(void *ptr);
 void tsm_memzero(void *ptr, size_t size);
 
+int tsm_hex2bin(const char *str, unsigned char *buf, long *buflen);
+
 #endif

@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include "test.h"
-#include "tongsuo/error.h"
+#include <tongsuo/minisuo.h>
 #include "tongsuo/sm3.h"
 
 /* the test is ported from tongsuo */

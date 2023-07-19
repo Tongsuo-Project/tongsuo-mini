@@ -5,5 +5,6 @@
 
 import tf
 
+
 def test_sm3_api():
     tf.ok("test_sm3")
