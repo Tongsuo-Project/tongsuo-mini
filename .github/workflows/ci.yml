@@ -37,7 +37,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: [asn1, sm3, sm4]
+        module: [asn1, sm3, sm4, ascon]
     steps:
     - uses: actions/checkout@v3
     - name: install packages
@@ -45,9 +45,9 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install cmake python3 python3-pip python3-pytest
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build
+      run: cmake -B ${{github.workspace}}/build -DWITH_${{matrix.module}}=ON
     - name: Build
-      run: cmake --build ${{github.workspace}}/build -DWITH_${{matrix.module}}=ON
+      run: cmake --build ${{github.workspace}}/build
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
@@ -61,9 +61,9 @@ jobs:
         sudo apt-get update
         sudo apt-get -y install cmake python3 python3-pip python3-pytest
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build
+      run: cmake -B ${{github.workspace}}/build -DWITH_ALL=ON
     - name: Build
-      run: cmake --build ${{github.workspace}}/build -DWITH_ALL=ON
+      run: cmake --build ${{github.workspace}}/build
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}

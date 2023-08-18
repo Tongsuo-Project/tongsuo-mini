@@ -15,7 +15,7 @@
 void *tsm_alloc(size_t size)
 {
     void *ptr = malloc(size);
-    LOGD("malloc %p:%z", ptr, size);
+    LOGD("malloc %p:%u", ptr, size);
     return ptr;
 }
 
