@@ -8,6 +8,7 @@
  */
 #include <string.h>
 #include <tongsuo/minisuo.h>
+#include "internal/mem.h"
 
 static int tsm_hexchar2int(char c)
 {
@@ -64,4 +65,29 @@ int tsm_hex2bin(const char *str, unsigned char *buf, long *buflen)
     *buflen = len;
 
     return TSM_OK;
+}
+
+unsigned char *tsm_hex2buf(const char *str)
+{
+    long len;
+    unsigned char *buf;
+
+    if (str == NULL)
+        return NULL;
+
+    len = strlen(str);
+    if (len & 1)
+        return NULL;
+
+    len /= 2;
+    buf = tsm_alloc(len);
+    if (buf == NULL)
+        return NULL;
+
+    if (tsm_hex2bin(str, buf, &len) != TSM_OK) {
+        tsm_free(buf);
+        return NULL;
+    }
+
+    return buf;
 }

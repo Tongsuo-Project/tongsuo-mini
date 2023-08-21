@@ -39,9 +39,9 @@
    }                                                                                               \
   }
 
-# define ASSERT(exp)     TEST_ASSERT((exp), __FUNCTION__, __LINE__)
-# define ASSERT_OK(ret)  TEST_ASSERT(((ret) == 0), __FUNCTION__, __LINE__)
-# define ASSERT_ERR(ret) TEST_ASSERT(((ret) != 0), __FUNCTION__, __LINE__)
+# define ASSERT(exp)     TEST_ASSERT((exp), __FILE__, __LINE__)
+# define ASSERT_OK(ret)  TEST_ASSERT(((ret) == 0), __FILE__, __LINE__)
+# define ASSERT_ERR(ret) TEST_ASSERT(((ret) != 0), __FILE__, __LINE__)
 
 # define TEST_ASSERT(exp, func, line)                                                              \
   do {                                                                                             \

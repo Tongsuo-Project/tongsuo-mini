@@ -24,9 +24,9 @@ extern "C" {
 # define TSM_CIPH_MODE_GCM     0x6
 # define TSM_CIPH_MODE_CCM     0x7
 
-# define TSM_CIPH_FLAG_DECRYPT 0x0
 # define TSM_CIPH_FLAG_ENCRYPT 0x1
-# define TSM_CIPH_FLAG_NO_PAD  0x2
+# define TSM_CIPH_FLAG_DECRYPT 0x2
+# define TSM_CIPH_FLAG_NO_PAD  0x4
 
 # define TSM_MAX_IV_LENGTH     16
 # define TSM_MAX_BLOCK_LENGTH  32
@@ -48,10 +48,14 @@ enum {
     TSM_ERR_WRONG_CIPH_MODE,
     TSM_ERR_INVALID_HEX_STR,
     TSM_ERR_DATA_NOT_MULTIPLE_OF_BLOCK_LENGTH,
+    TSM_ERR_INVALID_AEAD_TAG_LENGTH,
+    TSM_ERR_INVALID_OPERATION,
+    TSM_ERR_INVALID_ASCON_SCHEME,
+    TSM_ERR_AEAD_VERIFY_FAILED,
 };
 
-const char *tsm_version(void);
 const char *tsm_err2str(int err);
+const char *tsm_version(void);
 
 # ifdef __cplusplus
 }

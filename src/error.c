@@ -27,6 +27,10 @@ static const char *errstr[] = {
     [TSM_ERR_WRONG_CIPH_MODE] = "Wrong cipher mode",
     [TSM_ERR_INVALID_HEX_STR] = "Invalid hex string",
     [TSM_ERR_DATA_NOT_MULTIPLE_OF_BLOCK_LENGTH] = "Data length not multiple of block length",
+    [TSM_ERR_INVALID_AEAD_TAG_LENGTH] = "Invalid AEAD tag length",
+    [TSM_ERR_INVALID_OPERATION] = "Invalid operation",
+    [TSM_ERR_INVALID_ASCON_SCHEME] = "Invalid Ascon scheme",
+    [TSM_ERR_AEAD_VERIFY_FAILED] = "AEAD verify failed",
 };
 #endif
 

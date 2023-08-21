@@ -22,18 +22,13 @@ void tsm_log(const char *file, int line, int level, const char *fmt, ...);
 # ifdef TSM_LOG
 #  define LOGD(...) tsm_log(__FILE__, __LINE__, TSM_LOG_DEBUG, __VA_ARGS__)
 #  define LOGE(...) tsm_log(__FILE__, __LINE__, TSM_LOG_ERROR, __VA_ARGS__)
+#  define LOGERR(e) tsm_log(__FILE__, __LINE__, TSM_LOG_ERROR, "%s", tsm_err2str(e))
+#  define ERRLOG(e) tsm_log(__FILE__, __LINE__, TSM_LOG_ERROR, "%s", tsm_err2str(e)), e
 # else
 #  define LOGD(...)
 #  define LOGE(...)
+#  define LOGERR(...)
+#  define ERRLOG(...)
 # endif
-
-# define CHECKP(x)                                                                                 \
-  do {                                                                                             \
-   if (!(x)) {                                                                                     \
-    LOGE("Check '%s' failed on %s:%d", #x, __FILE__, __LINE__);                                    \
-    assert(0);                                                                                     \
-    return TSM_ERR_PASS_NULL_PARAM;                                                                \
-   }                                                                                               \
-  } while (0);
 
 #endif

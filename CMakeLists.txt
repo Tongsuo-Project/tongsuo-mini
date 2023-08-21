@@ -102,6 +102,22 @@ if(WITH_SM4 OR WITH_ALL)
     )
 endif()
 
+OPTION(WITH_ASCON "Build with ASCON module" OFF)
+
+if(WITH_ASCON OR WITH_ALL)
+    message(STATUS "WITH_ASCON=on")
+    list(APPEND libsrc src/ascon.c)
+    add_definitions(-DTSM_HAVE_ASCON)
+
+    add_executable(test_ascon_aead test/test_ascon_aead.c)
+    target_include_directories(test_ascon_aead PUBLIC test)
+    target_link_libraries(test_ascon_aead LINK_PUBLIC tongsuo-mini)
+    add_test(NAME test_ascon_aead
+        COMMAND python3 -m pytest test_ascon_aead.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
+endif()
+
 add_library(tongsuo-mini ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
