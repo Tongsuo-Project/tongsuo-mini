@@ -31,6 +31,12 @@
 #define ASCON_128A_PA_ROUNDS 12
 #define ASCON_128A_PB_ROUNDS 8
 
+#define ASCON_HASH_RATE       8
+#define ASCON_HASH_PA_ROUNDS  12
+#define ASCON_HASH_PB_ROUNDS  12
+#define ASCON_HASHA_PA_ROUNDS 12
+#define ASCON_HASHA_PB_ROUNDS 8
+
 #define ASCON_128_IV                                                                               \
  (((uint64_t)(ASCON_128_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128_RATE * 8) << 48)              \
   | ((uint64_t)(ASCON_128_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128_PB_ROUNDS) << 32))
@@ -38,6 +44,16 @@
 #define ASCON_128A_IV                                                                              \
  (((uint64_t)(ASCON_128A_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128A_RATE * 8) << 48)            \
   | ((uint64_t)(ASCON_128A_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128A_PB_ROUNDS) << 32))
+
+#define ASCON_HASH_IV                                                                              \
+ (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASH_PA_ROUNDS) << 40)               \
+  | ((uint64_t)(ASCON_HASH_PA_ROUNDS - ASCON_HASH_PB_ROUNDS) << 32)                                \
+  | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
+
+#define ASCON_HASHA_IV                                                                             \
+ (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASHA_PA_ROUNDS) << 40)              \
+  | ((uint64_t)(ASCON_HASHA_PA_ROUNDS - ASCON_HASHA_PB_ROUNDS) << 32)                              \
+  | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
 
 /* get byte from 64-bit Ascon word */
 #define GETBYTE(x, i) ((uint8_t)((uint64_t)(x) >> (56 - 8 * (i))))
@@ -161,7 +177,7 @@ int tsm_ascon_aead_update(void *ctx, const unsigned char *in, int inl, unsigned 
     if (ctx == NULL)
         return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
 
-    TSM_ASCON_CTX *c = ctx;
+    TSM_ASCON_AEAD_CTX *c = ctx;
 
     if (outl != NULL)
         *outl = 0;
@@ -317,7 +333,7 @@ int tsm_ascon_aead_update(void *ctx, const unsigned char *in, int inl, unsigned 
 
 int tsm_ascon_aead_final(void *ctx, unsigned char *out, int *outl)
 {
-    TSM_ASCON_CTX *c = ctx;
+    TSM_ASCON_AEAD_CTX *c = ctx;
 
     if (c->phase == ASCON_PHASE_INIT) {
         /* no ad and no in text */
@@ -427,7 +443,7 @@ void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned c
         return NULL;
     }
 
-    TSM_ASCON_CTX *ctx = tsm_calloc(sizeof(TSM_ASCON_CTX));
+    TSM_ASCON_AEAD_CTX *ctx = tsm_calloc(sizeof(TSM_ASCON_AEAD_CTX));
 
     if (ctx == NULL) {
         LOGE(tsm_err2str(TSM_ERR_MALLOC_FAILED));
@@ -475,7 +491,7 @@ void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned c
 void tsm_ascon_aead_clean(void *ctx)
 {
     if (ctx != NULL) {
-        TSM_ASCON_CTX *c = (TSM_ASCON_CTX *)ctx;
+        TSM_ASCON_AEAD_CTX *c = (TSM_ASCON_AEAD_CTX *)ctx;
         tsm_memzero(c, sizeof(*c));
         tsm_free(c);
     }
@@ -486,7 +502,7 @@ int tsm_ascon_aead_set_tag(void *ctx, const unsigned char *tag)
     if (ctx == NULL || tag == NULL)
         return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
 
-    TSM_ASCON_CTX *c = (TSM_ASCON_CTX *)ctx;
+    TSM_ASCON_AEAD_CTX *c = (TSM_ASCON_AEAD_CTX *)ctx;
 
     if (c->flags & TSM_CIPH_FLAG_ENCRYPT) {
         return ERRLOG(TSM_ERR_INVALID_OPERATION);
@@ -502,7 +518,7 @@ int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag)
     if (ctx == NULL || tag == NULL)
         return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
 
-    TSM_ASCON_CTX *c = (TSM_ASCON_CTX *)ctx;
+    TSM_ASCON_AEAD_CTX *c = (TSM_ASCON_AEAD_CTX *)ctx;
 
     if (c->flags & TSM_CIPH_FLAG_ENCRYPT) {
         memcpy(tag, c->tag, sizeof(c->tag));
@@ -568,5 +584,147 @@ int tsm_ascon_aead_oneshot(int scheme, const unsigned char *key, const unsigned 
     }
 
     tsm_ascon_aead_clean(ctx);
+    return TSM_OK;
+}
+
+void *tsm_ascon_hash_init(int scheme)
+{
+    TSM_ASCON_HASH_CTX *ctx = tsm_calloc(sizeof(TSM_ASCON_HASH_CTX));
+    if (ctx == NULL) {
+        LOGERR(TSM_ERR_MALLOC_FAILED);
+        return NULL;
+    }
+
+    ctx->mode = scheme;
+
+    if (ctx->mode == TSM_ASCON_HASH) {
+        ctx->s.x[0] = ASCON_HASH_IV;
+    } else if (ctx->mode == TSM_ASCON_HASHA) {
+        ctx->s.x[0] = ASCON_HASHA_IV;
+    } else {
+        LOGERR(TSM_ERR_INVALID_ASCON_SCHEME);
+        tsm_free(ctx);
+        return NULL;
+    }
+
+    P12(&ctx->s);
+    printstate("initialization", &ctx->s);
+
+    return ctx;
+}
+
+int tsm_ascon_hash_update(void *ctx, const unsigned char *in, int inl)
+{
+    TSM_ASCON_HASH_CTX *c = ctx;
+
+    if (ctx == NULL)
+        return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
+
+    if (in == NULL || inl == 0)
+        return TSM_OK;
+
+    if (c->buf_len > 0) {
+        if (c->buf_len + inl < ASCON_HASH_RATE) {
+            memcpy(c->buf + c->buf_len, in, inl);
+            c->buf_len += inl;
+            return TSM_OK;
+        } else {
+            memcpy(c->buf + c->buf_len, in, ASCON_HASH_RATE - c->buf_len);
+            c->s.x[0] ^= LOADBYTES(c->buf, 8);
+            printstate("absorb text", &c->s);
+
+            if (c->mode == TSM_ASCON_HASH)
+                P12(&c->s);
+            else
+                P8(&c->s);
+
+            in += ASCON_HASH_RATE - c->buf_len;
+            inl -= ASCON_HASH_RATE - c->buf_len;
+            c->buf_len = 0;
+        }
+    }
+
+    while (inl >= ASCON_HASH_RATE) {
+        c->s.x[0] ^= LOADBYTES(in, 8);
+        printstate("absorb text", &c->s);
+
+        if (c->mode == TSM_ASCON_HASH)
+            P12(&c->s);
+        else
+            P8(&c->s);
+
+        in += ASCON_HASH_RATE - c->buf_len;
+        inl -= ASCON_HASH_RATE - c->buf_len;
+    }
+
+    memcpy(c->buf, in, inl);
+    c->buf_len = inl;
+
+    return TSM_OK;
+}
+
+int tsm_ascon_hash_final(void *ctx, unsigned char *out, int *outl)
+{
+    TSM_ASCON_HASH_CTX *c = ctx;
+    int len;
+
+    if (ctx == NULL || out == NULL || outl == NULL)
+        return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
+
+    c->s.x[0] ^= LOADBYTES(c->buf, c->buf_len);
+    c->s.x[0] ^= PAD(c->buf_len);
+
+    printstate("pad text", &c->s);
+    P12(&c->s);
+
+    *outl = 0;
+
+    len = TSM_ASCON_HASH_LEN;
+    while (len > ASCON_HASH_RATE) {
+        STOREBYTES(out, c->s.x[0], 8);
+        printstate("squeeze output", &c->s);
+
+        if (c->mode == TSM_ASCON_HASH)
+            P12(&c->s);
+        else
+            P8(&c->s);
+
+        out += ASCON_HASH_RATE;
+        *outl += ASCON_HASH_RATE;
+        len -= ASCON_HASH_RATE;
+    }
+    /* squeeze final output block */
+    STOREBYTES(out, c->s.x[0], len);
+    *outl += len;
+    printstate("squeeze output", &c->s);
+
+    return TSM_OK;
+}
+
+void tsm_ascon_hash_clean(void *ctx)
+{
+    if (ctx != NULL) {
+        TSM_ASCON_HASH_CTX *c = (TSM_ASCON_HASH_CTX *)ctx;
+        tsm_memzero(c, sizeof(*c));
+        tsm_free(c);
+    }
+}
+
+int tsm_ascon_hash_oneshot(int scheme, const unsigned char *in, int inl, unsigned char *out,
+                           int *outl)
+{
+    TSM_ASCON_HASH_CTX *ctx;
+
+    ctx = tsm_ascon_hash_init(scheme);
+    if (ctx == NULL)
+        return TSM_FAILED;
+
+    if (tsm_ascon_hash_update(ctx, in, inl) != TSM_OK
+        || tsm_ascon_hash_final(ctx, out, outl) != TSM_OK) {
+        tsm_ascon_hash_clean(ctx);
+        return TSM_FAILED;
+    }
+
+    tsm_ascon_hash_clean(ctx);
     return TSM_OK;
 }

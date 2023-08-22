@@ -110,10 +110,17 @@ if(WITH_ASCON OR WITH_ALL)
     add_definitions(-DTSM_HAVE_ASCON)
 
     add_executable(test_ascon_aead test/test_ascon_aead.c)
+    add_executable(test_ascon_hash test/test_ascon_hash.c)
     target_include_directories(test_ascon_aead PUBLIC test)
+    target_include_directories(test_ascon_hash PUBLIC test)
     target_link_libraries(test_ascon_aead LINK_PUBLIC tongsuo-mini)
+    target_link_libraries(test_ascon_hash LINK_PUBLIC tongsuo-mini)
     add_test(NAME test_ascon_aead
         COMMAND python3 -m pytest test_ascon_aead.py
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
+    add_test(NAME test_ascon_hash
+        COMMAND python3 -m pytest test_ascon_hash.py
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
     )
 endif()

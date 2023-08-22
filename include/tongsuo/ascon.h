@@ -22,6 +22,11 @@ extern "C" {
 
 # define TSM_ASCON_AEAD_TAG_LEN 16
 
+# define TSM_ASCON_HASH         0x1
+# define TSM_ASCON_HASHA        0x2
+
+# define TSM_ASCON_HASH_LEN     32
+
 void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned char *nonce,
                           int flags);
 int tsm_ascon_aead_update(void *ctx, const unsigned char *in, int inl, unsigned char *out,
@@ -35,6 +40,12 @@ int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag);
 int tsm_ascon_aead_oneshot(int scheme, const unsigned char *key, const unsigned char *nonce,
                            const unsigned char *ad, int adl, const unsigned char *in, int inl,
                            unsigned char *out, int *outl, int flags);
+void *tsm_ascon_hash_init(int scheme);
+int tsm_ascon_hash_update(void *ctx, const unsigned char *in, int inl);
+int tsm_ascon_hash_final(void *ctx, unsigned char *out, int *outl);
+void tsm_ascon_hash_clean(void *ctx);
+int tsm_ascon_hash_oneshot(int scheme, const unsigned char *in, int inl, unsigned char *out,
+                           int *outl);
 
 # ifdef __cplusplus
 }
