@@ -121,20 +121,15 @@ int main(int argc, char **argv)
                 }
                 i++;
             } else if (strcmp(argv[i], "-key") == 0) {
-                hex_key = argv[i + 1];
-                i++;
+                hex_key = argv[++i];
             } else if (strcmp(argv[i], "-nonce") == 0) {
-                hex_nonce = argv[i + 1];
-                i++;
+                hex_nonce = argv[++i];
             } else if (strcmp(argv[i], "-ad") == 0) {
-                hex_ad = argv[i + 1];
-                i++;
+                hex_ad = argv[++i];
             } else if (strcmp(argv[i], "-pt") == 0) {
-                hex_plaintext = argv[i + 1];
-                i++;
+                hex_plaintext = argv[++i];
             } else if (strcmp(argv[i], "-ct") == 0) {
-                hex_ciphertext = argv[i + 1];
-                i++;
+                hex_ciphertext = argv[++i];
             }
         }
     }

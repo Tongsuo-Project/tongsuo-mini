@@ -108,9 +108,13 @@ jobs:
 
     - uses: actions/checkout@v3
     - name: Configure CMake
-      run: cmake -B ${{github.workspace}}/build -D CMAKE_C_COMPILER=${{ matrix.zoo.cc }}
+      run: cmake -B ${{github.workspace}}/build -D CMAKE_C_COMPILER=${{ matrix.zoo.cc }} -DWITH_ALL=ON
     - name: Build
-      run: cmake --build ${{github.workspace}}/build -DWITH_ALL=ON
+      run: cmake --build ${{github.workspace}}/build
     - name: Test
       working-directory: ${{github.workspace}}/build
       run: ctest -C ${{env.BUILD_TYPE}}
+    - name: debug
+      if: ${{ failure() }}
+      run: |
+        cat ${{github.workspace}}/build/Testing/Temporary/LastTest.log
