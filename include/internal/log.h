@@ -28,7 +28,7 @@ void tsm_log(const char *file, int line, int level, const char *fmt, ...);
 #  define LOGD(...)
 #  define LOGE(...)
 #  define LOGERR(...)
-#  define ERRLOG(...)
+#  define ERRLOG(e) e
 # endif
 
 #endif

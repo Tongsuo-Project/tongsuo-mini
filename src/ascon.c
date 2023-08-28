@@ -64,11 +64,15 @@
 /* set padding byte in 64-bit Ascon word */
 #define PAD(i) SETBYTE(0x80, i)
 
+#ifdef TSM_LOG
 static void printstate(const char *label, ascon_state_t *s)
 {
     LOGD("%s:\tx0=%016llu x1=%016llu x2=%016llu x3=%016llu x4=%016llu", label, s->x[0], s->x[1],
          s->x[2], s->x[3], s->x[4]);
 }
+#else
+#define printstate(...)
+#endif
 
 /* load bytes into 64-bit Ascon word */
 static inline uint64_t LOADBYTES(const uint8_t *bytes, int n)
