@@ -17,7 +17,7 @@
 ~~~
 brew install cmake
 brew install python
-sudo pip3 install pytest
+sudo pip3 install -r test/requirements.txt
 ~~~
 
 ## 构建
