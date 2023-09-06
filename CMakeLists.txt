@@ -32,6 +32,7 @@ set(libsrc
 OPTION(WITH_ALL "Build with all modules" OFF)
 
 OPTION(WITH_DEBUG "Enable debug" OFF)
+OPTION(WITH_PERF "Build performance test program" OFF)
 
 if(WITH_DEBUG OR WITH_ALL)
     message(STATUS "DEBUG=on")
@@ -72,7 +73,7 @@ endif()
 
 OPTION(WITH_SM3 "Build with SM3 module" OFF)
 
-if(WITH_SM3 OR WITH_ALL)
+if(WITH_SM3 OR WITH_ALL OR WITH_PERF)
     message(STATUS "WITH_SM3=on")
     list(APPEND libsrc src/sm3.c)
     add_definitions(-DTSM_HAVE_SM3)
@@ -88,7 +89,7 @@ endif()
 
 OPTION(WITH_SM4 "Build with SM4 module" OFF)
 
-if(WITH_SM4 OR WITH_ALL)
+if(WITH_SM4 OR WITH_ALL OR WITH_PERF)
     message(STATUS "WITH_SM4=on")
     list(APPEND libsrc src/sm4.c)
     add_definitions(-DTSM_HAVE_SM4)
@@ -104,7 +105,7 @@ endif()
 
 OPTION(WITH_ASCON "Build with ASCON module" OFF)
 
-if(WITH_ASCON OR WITH_ALL)
+if(WITH_ASCON OR WITH_ALL OR WITH_PERF)
     message(STATUS "WITH_ASCON=on")
     list(APPEND libsrc src/ascon.c)
     add_definitions(-DTSM_HAVE_ASCON)
@@ -129,6 +130,12 @@ add_library(tongsuo-mini ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
+
+if(WITH_PERF OR WITH_ALL)
+    message(STATUS "WITH_PERF=on")
+    add_executable(minisuo-perf perf/perf.c)
+    target_link_libraries(minisuo-perf LINK_PUBLIC tongsuo-mini)
+endif()
 
 enable_testing()
 add_test(NAME test_minisuo
