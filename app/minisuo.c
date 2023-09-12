@@ -218,7 +218,8 @@ static cmd_handler cmds[] = {
 #ifdef TSM_HAVE_SM4
     {"sm4", sm4_handler},
 #endif
-    {NULL, NULL}};
+    {"\0", NULL}
+};
 
 #define N_CMD (int)(sizeof(cmds)/sizeof(cmds[0]))
 
