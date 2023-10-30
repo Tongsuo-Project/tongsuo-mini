@@ -1,4 +1,4 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
 PROJECT(tongsuo-mini)
 
@@ -126,7 +126,9 @@ if(WITH_ASCON OR WITH_ALL OR WITH_PERF)
     )
 endif()
 
-add_library(tongsuo-mini ${libsrc})
+add_library(tongsuo-mini-obj OBJECT ${libsrc})
+set_property(TARGET tongsuo-mini-obj PROPERTY POSITION_INDEPENDENT_CODE 1)
+add_library(tongsuo-mini SHARED STATIC ${libsrc})
 
 add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
