@@ -9,7 +9,8 @@
 
 #include <string.h>
 #include <tongsuo/ascon.h>
-#include "internal/mem.h"
+#include <tongsuo/mem.h>
+#include <tongsuo/minisuo.h>
 #include "test.h"
 
 static int scheme;

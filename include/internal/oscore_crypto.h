@@ -7,18 +7,18 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#if !defined(TONGSUOMINI_MEM_H)
-# define TONGSUOMINI_MEM_H
+#if !defined(TSM_INTERNAL_OSCORE_CRYPTO_H)
+# define TSM_INTERNAL_OSCORE_CRYPTO_H
 # pragma once
 
-# include <stddef.h>
+# include <tongsuo/oscore_cose.h>
 
-void *tsm_alloc(size_t size);
-void *tsm_calloc(size_t size);
-void tsm_free(void *ptr);
-void tsm_memzero(void *ptr, size_t size);
-
-int tsm_hex2bin(const char *str, unsigned char *buf, long *buflen);
-unsigned char *tsm_hex2buf(const char *str);
+int oscore_hkdf(cose_hkdf_alg_t hkdf_alg,
+                TSM_STR *salt,
+                TSM_STR *ikm,
+                uint8_t *info,
+                size_t info_len,
+                uint8_t *okm,
+                size_t okm_len);
 
 #endif

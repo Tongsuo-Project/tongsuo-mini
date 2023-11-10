@@ -9,7 +9,7 @@
 
 #include <string.h>
 #include <tongsuo/ascon.h>
-#include "internal/mem.h"
+#include <tongsuo/mem.h>
 #include "test.h"
 
 static char *schemestr;
@@ -22,7 +22,7 @@ int test_ascon_hash(void)
     unsigned char *md = tsm_hex2buf(hex_md);
     unsigned char buf[TSM_ASCON_HASH_LEN];
     int scheme;
-    int outlen;
+    size_t outlen;
 
     if (strcmp(schemestr, "hash") == 0)
         scheme = TSM_ASCON_HASH;

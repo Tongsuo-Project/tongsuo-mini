@@ -7,8 +7,8 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#if !defined(TONGSUOMINI_POOL_H)
-# define TONGSUOMINI_POOL_H
+#if !defined(TSM_INTERNAL_POOL_H)
+# define TSM_INTERNAL_POOL_H
 # pragma once
 
 # include <stddef.h>

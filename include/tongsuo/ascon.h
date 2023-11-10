@@ -7,15 +7,13 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#if !defined(TONGSUOMINI_ASCON_H)
-# define TONGSUOMINI_ASCON_H
+#if !defined(TSM_ASCON_H)
+# define TSM_ASCON_H
 # pragma once
 
 # ifdef __cplusplus
 extern "C" {
 # endif
-
-# include <tongsuo/minisuo.h>
 
 # define TSM_ASCON_AEAD_128     0x1
 # define TSM_ASCON_AEAD_128A    0x2
@@ -26,6 +24,7 @@ extern "C" {
 # define TSM_ASCON_HASHA        0x2
 
 # define TSM_ASCON_HASH_LEN     32
+# define TSM_ASCON_HMAC_LEN     TSM_ASCON_HASH_LEN
 
 void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned char *nonce,
                           int flags);
@@ -40,12 +39,14 @@ int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag);
 int tsm_ascon_aead_oneshot(int scheme, const unsigned char *key, const unsigned char *nonce,
                            const unsigned char *ad, int adl, const unsigned char *in, int inl,
                            unsigned char *out, int *outl, int flags);
-void *tsm_ascon_hash_init(int scheme);
-int tsm_ascon_hash_update(void *ctx, const unsigned char *in, int inl);
-int tsm_ascon_hash_final(void *ctx, unsigned char *out, int *outl);
-void tsm_ascon_hash_clean(void *ctx);
-int tsm_ascon_hash_oneshot(int scheme, const unsigned char *in, int inl, unsigned char *out,
-                           int *outl);
+void *tsm_ason_hash_ctx_new(void);
+void tsm_ascon_hash_ctx_free(void *ctx);
+int tsm_ascon_hash_init(void *ctx, int type);
+int tsm_ascon_hash_update(void *ctx, const unsigned char *in, size_t inl);
+int tsm_ascon_hash_final(void *ctx, unsigned char *out, size_t *outl);
+int tsm_ascon_hash_oneshot(int type, const unsigned char *in, size_t inl, unsigned char *out,
+                           size_t *outl);
+void *tsm_ascon_hash_meth(int type);
 
 # ifdef __cplusplus
 }

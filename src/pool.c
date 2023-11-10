@@ -8,8 +8,8 @@
  */
 
 #include "internal/log.h"
-#include "internal/mem.h"
 #include "internal/pool.h"
+#include <tongsuo/mem.h>
 #include <stdlib.h>
 
 typedef struct {

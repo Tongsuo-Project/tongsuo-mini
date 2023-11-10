@@ -7,8 +7,8 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#if !defined(TONGSUOMINI_INTERNAL_SM4_H)
-# define TONGSUOMINI_INTERNAL_SM4_H
+#if !defined(TSM_INTERNAL_SM4_H)
+# define TSM_INTERNAL_SM4_H
 # pragma once
 
 # include <stdint.h>

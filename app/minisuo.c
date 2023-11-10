@@ -14,7 +14,7 @@
 #include <tongsuo/sm3.h>
 #include <tongsuo/sm4.h>
 #include <tongsuo/ascon.h>
-#include "internal/mem.h"
+#include <tongsuo/mem.h>
 
 typedef int (*algorithm_handler)(int argc, char **argv);
 
@@ -28,7 +28,7 @@ static int sm4_handler(int argc, char **argv)
 {
     int ret = 1, i, mode = TSM_CIPH_MODE_CBC, flags = 0;
     long len;
-    int outlen;
+    size_t outlen;
     size_t nread;
     unsigned char inbuf[1024];
     unsigned char outbuf[1024 + TSM_MAX_BLOCK_LENGTH];
@@ -433,7 +433,8 @@ end:
 static int ascon_hash_handler(int argc, char **argv)
 {
     unsigned char md[TSM_ASCON_HASH_LEN];
-    int i, md_len = 0, scheme;
+    int i, scheme;
+    size_t md_len = 0;
 
     if (argc == 3) {
         /* it must be: minisuo ascon-hash -h */
@@ -509,7 +510,7 @@ int main(int argc, char *argv[])
 
     for (i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0) {
-            fprintf(stderr, "%s\n", tsm_version());
+            fprintf(stderr, "%s\n", tsm_version_text());
             exit(0);
         } else {
             /* find a command and call corresponding handler */

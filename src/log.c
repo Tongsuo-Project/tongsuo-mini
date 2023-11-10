@@ -15,10 +15,12 @@
 
 const char *log_level[] = {
     "DEBUG",
+    "INFO",
+    "WARN",
     "ERROR",
 };
 
-void tsm_log(const char *file, int line, int level, const char *fmt, ...)
+void tsm_log_impl(const char *file, int line, int level, const char *fmt, ...)
 {
     char *p, *end;
     va_list args;
@@ -27,9 +29,11 @@ void tsm_log(const char *file, int line, int level, const char *fmt, ...)
     p = msg;
     end = p + sizeof(msg) - 1;
 
-    p += snprintf(p, end - p, "[%s]|[%s:%d]|", log_level[level], file, line);
-    if (p > end)
-        return;
+    if (file != NULL) {
+        p += snprintf(p, end - p, "[%s]|[%s:%d]|", log_level[level], file, line);
+        if (p > end)
+            return;
+    }
 
     va_start(args, fmt);
     p += vsnprintf(p, end - p, fmt, args);

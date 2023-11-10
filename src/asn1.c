@@ -229,7 +229,7 @@ int asn1_encode_enum(unsigned char **out, size_t *outl, int val)
 int asn1_decode_tag_int(unsigned char **in, size_t inlen, int tag, int *val)
 {
     if (in == NULL || *in == NULL || val == NULL)
-        return ERRLOG(TSM_ERR_PASS_NULL_PARAM);
+        return eLOG(TSM_ERR_PASS_NULL_PARAM);
 
     int err;
     size_t len;

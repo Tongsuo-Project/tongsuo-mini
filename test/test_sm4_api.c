@@ -33,7 +33,7 @@ static int test_sm4_crypt(int idx)
         0x10, 0x5B, 0xD4, 0xA2, 0x2A, 0xF6, 0x12, 0x5F, 0x72, 0x75, 0xCE,
         0x55, 0x2C, 0x3A, 0x2B, 0xBC, 0xF5, 0x33, 0xDE, 0x8A, 0x3B,
     };
-    int outlen, tmplen;
+    size_t outlen, tmplen;
 
     if (idx == 0) {
         ctx =
@@ -67,7 +67,7 @@ static int test_sm4_crypt(int idx)
     return TSM_OK;
 }
 
-int main()
+int main(void)
 {
     TESTS(test_sm4_crypt, 4);
 

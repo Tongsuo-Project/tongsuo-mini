@@ -8,9 +8,9 @@
  */
 
 #include "internal/sm4.h"
-#include "internal/mem.h"
 #include "internal/log.h"
 #include <tongsuo/sm4.h>
+#include <tongsuo/mem.h>
 #include <limits.h>
 #include <string.h>
 #include <assert.h>
@@ -409,10 +409,11 @@ static int sm4_cbc_cipher(TSM_SM4_CTX *ctx, unsigned char *out, const unsigned c
 typedef int (*do_cipher_f)(TSM_SM4_CTX *ctx, unsigned char *out, const unsigned char *in,
                            size_t inl);
 
-static int tsm_sm4_crypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, int inl,
-                                unsigned char *out, int *outl)
+static int tsm_sm4_crypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, size_t inl,
+                                unsigned char *out, size_t *outl)
 {
-    int i, j, bl;
+    int i, j;
+    size_t bl;
     do_cipher_f cipher;
 
     if (ctx->mode == TSM_CIPH_MODE_CBC) {
@@ -488,14 +489,14 @@ static int tsm_sm4_crypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, int i
     return TSM_OK;
 }
 
-static int tsm_sm4_encrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, int inl,
-                                  unsigned char *out, int *outl)
+static int tsm_sm4_encrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, size_t inl,
+                                  unsigned char *out, size_t *outl)
 {
     return tsm_sm4_crypt_update(ctx, in, inl, out, outl);
 }
 
-static int tsm_sm4_decrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, int inl,
-                                  unsigned char *out, int *outl)
+static int tsm_sm4_decrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, size_t inl,
+                                  unsigned char *out, size_t *outl)
 {
     int fix_len;
     unsigned int b;
@@ -556,7 +557,7 @@ static int tsm_sm4_decrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, int
     return TSM_OK;
 }
 
-int tsm_sm4_update(void *ctx, const unsigned char *in, int inl, unsigned char *out, int *outl)
+int tsm_sm4_update(void *ctx, const unsigned char *in, size_t inl, unsigned char *out, size_t *outl)
 {
     int ret;
     TSM_SM4_CTX *c = ctx;
@@ -573,7 +574,7 @@ int tsm_sm4_update(void *ctx, const unsigned char *in, int inl, unsigned char *o
     return ret;
 }
 
-static int tsm_sm4_decrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, int *outl)
+static int tsm_sm4_decrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, size_t *outl)
 {
     int i, n;
     unsigned int b;
@@ -620,7 +621,7 @@ static int tsm_sm4_decrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, int *outl
     return TSM_OK;
 }
 
-static int tsm_sm4_encrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, int *outl)
+static int tsm_sm4_encrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, size_t *outl)
 {
     int n, ret;
     unsigned int i, b, bl;
@@ -660,7 +661,7 @@ static int tsm_sm4_encrypt_final(TSM_SM4_CTX *ctx, unsigned char *out, int *outl
     return ret;
 }
 
-int tsm_sm4_final(void *ctx, unsigned char *out, int *outl)
+int tsm_sm4_final(void *ctx, unsigned char *out, size_t *outl)
 {
     int ret;
     TSM_SM4_CTX *c = ctx;
@@ -676,9 +677,11 @@ int tsm_sm4_final(void *ctx, unsigned char *out, int *outl)
 }
 
 static int tsm_sm4_crypt(int mode, const unsigned char *key, const unsigned char *iv,
-                         const unsigned char *in, int inl, unsigned char *out, int *outl, int flags)
+                         const unsigned char *in, size_t inl, unsigned char *out, size_t *outl,
+                         int flags)
 {
-    int ret, tmplen;
+    int ret;
+    size_t tmplen;
     TSM_SM4_CTX *ctx = NULL;
 
     ctx = tsm_sm4_init(mode, key, iv, flags);
@@ -705,7 +708,8 @@ static int tsm_sm4_crypt(int mode, const unsigned char *key, const unsigned char
 }
 
 int tsm_sm4_oneshot(int mode, const unsigned char *key, const unsigned char *iv,
-                    const unsigned char *in, int inl, unsigned char *out, int *outl, int flags)
+                    const unsigned char *in, size_t inl, unsigned char *out, size_t *outl,
+                    int flags)
 {
     return tsm_sm4_crypt(mode, key, iv, in, inl, out, outl, flags);
 }

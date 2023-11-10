@@ -31,6 +31,12 @@ static const char *errstr[] = {
     [TSM_ERR_INVALID_OPERATION] = "Invalid operation",
     [TSM_ERR_INVALID_ASCON_SCHEME] = "Invalid Ascon scheme",
     [TSM_ERR_AEAD_VERIFY_FAILED] = "AEAD verify failed",
+    [TSM_ERR_INVALID_HASH_SIZE] = "Invalid hash size",
+    [TSM_ERR_INVALID_ALGORITHM] = "Invalid algorithm",
+    [TSM_ERR_NOT_FOUND] = "Not found",
+    [TSM_ERR_INVALID_SEQ] = "Invalid sequence num",
+    [TSM_ERR_REPLAYED_SEQ] = "Replayed sequence num",
+    [TSM_ERR_ALGORITHM_NOT_SUPPORTED] = "Algorithm not supported",
 };
 #endif
 

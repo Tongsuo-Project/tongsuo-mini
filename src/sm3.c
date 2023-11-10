@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <tongsuo/sm3.h>
-#include <internal/mem.h>
+#include <tongsuo/mem.h>
 #include <internal/log.h>
 
 #define SM3_A 0x7380166fUL
