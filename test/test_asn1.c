@@ -413,7 +413,7 @@ int test_asn1_encode_ia5_string(void)
     return 0;
 }
 
-int main()
+int main(void)
 {
     TEST(test_asn1_encode_bool);
     TEST(test_asn1_decode_bool);

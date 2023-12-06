@@ -7,13 +7,15 @@
  * https://github.com/Tongsuo-Project/tongsuo-mini/blob/main/LICENSE
  */
 
-#if !defined(TONGSUOMINI_SM3_H)
-# define TONGSUOMINI_SM3_H
+#if !defined(TSM_SM3_H)
+# define TSM_SM3_H
 # pragma once
 
 # ifdef __cplusplus
 extern "C" {
 # endif
+
+# include <stdlib.h>
 
 # define TSM_SM3_DIGEST_LEN  32
 
@@ -27,7 +29,7 @@ typedef struct {
    unsigned int num;
 } tsm_sm3_ctx;
 
-tsm_sm3_ctx *tsm_sm3_init();
+tsm_sm3_ctx *tsm_sm3_init(void);
 int tsm_sm3_update(tsm_sm3_ctx *c, const void *data, size_t len);
 int tsm_sm3_final(tsm_sm3_ctx *c, unsigned char *md);
 void tsm_sm3_transform(tsm_sm3_ctx *c, const void *data, size_t num);

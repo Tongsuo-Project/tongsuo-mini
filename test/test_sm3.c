@@ -68,7 +68,7 @@ int test_sm3_hash(void)
     return TSM_OK;
 }
 
-int main()
+int main(void)
 {
     TEST(test_sm3_hash);
 

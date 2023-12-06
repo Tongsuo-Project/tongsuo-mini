@@ -8,13 +8,13 @@ import pytest
 
 
 @pytest.mark.parametrize(
-    "scheme, kat_file",
+    "algo, kat_file",
     [
-        ("hash", "test_ascon_data/ascon_hash.txt"),
-        ("hasha", "test_ascon_data/ascon_hasha.txt"),
+        ("ascon-hmac", "test_ascon_data/ascon_hmac.txt"),
+        ("ascon-hmaca", "test_ascon_data/ascon_hmaca.txt"),
     ],
 )
-def test_ascon_hash(scheme, kat_file, subtests):
+def test_ascon_hmac(algo, kat_file, subtests):
     with open(kat_file) as f:
         tb = {}
 
@@ -28,11 +28,11 @@ def test_ascon_hash(scheme, kat_file, subtests):
             name, value = line.partition("=")[::2]
             tb[name.strip()] = value.strip()
 
-            if "Count" in tb and "Msg" in tb and "MD" in tb:
+            if "Count" in tb and "Msg" in tb and "Key" in tb and "Tag" in tb:
                 with subtests.test(i=tb["Count"]):
                     tf.ok(
-                        "test_ascon_hash -scheme {} -msg {} -md {}".format(
-                            scheme, tb["Msg"], tb["MD"]
+                        "test_ascon_hmac -algo {} -key {} -msg {} -tag {}".format(
+                            algo, tb["Key"], tb["Msg"], tb["Tag"]
                         )
                     )
                     tb.clear()

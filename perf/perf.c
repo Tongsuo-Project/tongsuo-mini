@@ -26,7 +26,7 @@
 #include <tongsuo/sm3.h>
 #include <tongsuo/sm4.h>
 
-static long long get_time();
+static long long get_time(void);
 
 /* iteration number, could be adjusted as required */
 #define ITR_NUM 100
@@ -52,7 +52,7 @@ struct perf_result {
     int ascon_aead_dec_avg;
 };
 
-static long long get_time()
+static long long get_time(void)
 {
     /* just using gettimeofday() is adequate for our case */
     struct timeval tp;
@@ -109,9 +109,7 @@ int main(void)
 
         /* ASCON hash */
         start = get_time();
-        if (tsm_ascon_hash_oneshot(TSM_ASCON_HASH,
-                                   rnd_data, inlen,
-                                   ascon_md, (int *)&mdlen) != TSM_OK) {
+        if (tsm_ascon_hash_oneshot(TSM_ASCON_HASH, rnd_data, inlen, ascon_md, &mdlen) != TSM_OK) {
             goto err;
         }
         end = get_time();
@@ -123,9 +121,9 @@ int main(void)
         }
         /* SM4 CBC encrypt */
         start = get_time();
-        if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv,
-                            rnd_data, inlen, out, (int *)&outlen,
-                            TSM_CIPH_FLAG_ENCRYPT) != TSM_OK) {
+        if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv, rnd_data, inlen, out, &outlen,
+                            TSM_CIPH_FLAG_ENCRYPT)
+            != TSM_OK) {
             goto err;
         }
         end = get_time();
@@ -137,9 +135,9 @@ int main(void)
         }
         /* SM4 CBC decrypt */
         start = get_time();
-        if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv,
-                            out, outlen, out2, (int *)&out2len,
-                            TSM_CIPH_FLAG_DECRYPT) != TSM_OK) {
+        if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv, out, outlen, out2, &out2len,
+                            TSM_CIPH_FLAG_DECRYPT)
+            != TSM_OK) {
             goto err;
         }
         end = get_time();
