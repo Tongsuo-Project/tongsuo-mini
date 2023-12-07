@@ -157,8 +157,11 @@ if(WITH_HMAC)
 endif()
 
 add_library(tongsuo-mini-obj OBJECT ${libsrc})
+# static library does not need to be a PIC...
 set_property(TARGET tongsuo-mini-obj PROPERTY POSITION_INDEPENDENT_CODE 1)
-add_library(tongsuo-mini SHARED STATIC ${libsrc})
+add_library(tongsuo-mini SHARED $<TARGET_OBJECTS:tongsuo-mini-obj>)
+add_library(tongsuo-mini-static STATIC $<TARGET_OBJECTS:tongsuo-mini-obj>)
+set_target_properties(tongsuo-mini-static PROPERTIES OUTPUT_NAME tongsuo-mini)
 
 add_executable(minisuo app/minisuo.c)
 target_link_libraries(minisuo LINK_PUBLIC tongsuo-mini)
