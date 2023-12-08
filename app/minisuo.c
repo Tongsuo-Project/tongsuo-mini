@@ -27,7 +27,7 @@ typedef struct {
 static int sm4_handler(int argc, char **argv)
 {
     int ret = 1, i, mode = TSM_CIPH_MODE_CBC, flags = 0;
-    long len;
+    size_t len;
     size_t outlen;
     size_t nread;
     unsigned char inbuf[1024];
@@ -132,8 +132,12 @@ static int sm4_handler(int argc, char **argv)
         }
     }
 
-    ctx = tsm_sm4_init(mode, key, iv, flags);
+    ctx = tsm_sm4_ctx_new();
     if (ctx == NULL)
+        goto end;
+
+    ret = tsm_sm4_init(ctx, mode, key, iv, flags);
+    if (ret != TSM_OK)
         goto end;
 
     while (1) {
@@ -216,8 +220,8 @@ static int sm3_handler(int argc, char **argv)
 static int ascon_aead_handler(int argc, char **argv)
 {
     int ret = 1, i, scheme, flags = 0, tag_set = 0;
-    long len;
-    int outlen;
+    size_t len;
+    size_t outlen;
     size_t nread;
     unsigned char inbuf[1024];
     unsigned char outbuf[1024 + TSM_MAX_BLOCK_LENGTH];
@@ -356,8 +360,12 @@ static int ascon_aead_handler(int argc, char **argv)
         }
     }
 
-    ctx = tsm_ascon_aead_init(scheme, key, nonce, flags);
+    ctx = tsm_ascon_aead_ctx_new();
     if (ctx == NULL)
+        return 1;
+
+    ret = tsm_ascon_aead_init(ctx, scheme, key, nonce, flags);
+    if (ret != TSM_OK)
         return 1;
 
     if (flags & TSM_CIPH_FLAG_DECRYPT) {
@@ -426,7 +434,7 @@ end:
     if (out != NULL && out != stdout)
         fclose(out);
     if (ctx != NULL)
-        tsm_ascon_aead_clean(ctx);
+        tsm_ascon_aead_ctx_free(ctx);
     return ret;
 }
 

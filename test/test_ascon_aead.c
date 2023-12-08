@@ -28,8 +28,8 @@ int test_ascon_aead_encrypt(void)
     unsigned char *plaintext = tsm_hex2buf(hex_plaintext);
     unsigned char *ciphertext = tsm_hex2buf(hex_ciphertext);
     unsigned char *buf = NULL;
-    int buflen;
-    int plaintext_len = 0;
+    size_t buflen;
+    size_t plaintext_len = 0;
 
     if (plaintext != NULL)
         plaintext_len = strlen(hex_plaintext) / 2;
@@ -67,8 +67,8 @@ int test_ascon_aead_decrypt(void)
     unsigned char *plaintext = tsm_hex2buf(hex_plaintext);
     unsigned char *ciphertext = tsm_hex2buf(hex_ciphertext);
     unsigned char *buf = NULL;
-    int buflen;
-    int plaintext_len = 0;
+    size_t buflen;
+    size_t plaintext_len = 0;
 
     if (plaintext != NULL)
         plaintext_len = strlen(hex_plaintext) / 2;

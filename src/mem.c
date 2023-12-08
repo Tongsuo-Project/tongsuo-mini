@@ -54,10 +54,10 @@ static int tsm_hexchar2int(char c)
     return -1;
 }
 
-int tsm_hex2bin(const char *str, unsigned char *buf, long *buflen)
+int tsm_hex2bin(const char *str, unsigned char *buf, size_t *buflen)
 {
-    long i, j;
-    long len;
+    size_t i, j;
+    size_t len;
 
     len = strlen(str);
     if (len & 1) {
@@ -101,7 +101,7 @@ int tsm_hex2bin(const char *str, unsigned char *buf, long *buflen)
 
 unsigned char *tsm_hex2buf(const char *str)
 {
-    long len;
+    size_t len;
     unsigned char *buf;
 
     if (str == NULL)

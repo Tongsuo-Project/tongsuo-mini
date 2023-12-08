@@ -13,10 +13,13 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if(MSVC)
-    set(TONGSUO_MINI_INSTALL_DIR C:/tongsuo-mini)
+    set(CMAKE_INSTALL_PREFIX C:/tongsuo-mini)
 else()
-    set(TONGSUO_MINI_INSTALL_DIR /opt/tongsuo-mini)
+    set(CMAKE_INSTALL_PREFIX /opt/tongsuo-mini)
 endif()
+
+set(CMAKE_MACOSX_RPATH 1)
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
 
 include_directories(include)
 
@@ -197,19 +200,19 @@ message(STATUS "WITH_SM4...................${WITH_SM4}")
 # install
 #
 install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/tongsuo
-    DESTINATION ${TONGSUO_MINI_INSTALL_DIR}/include/
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/include
     COMPONENT dev)
 
-install(TARGETS tongsuo-mini
-    LIBRARY DESTINATION ${TONGSUO_MINI_INSTALL_DIR}/lib COMPONENT lib
-    ARCHIVE DESTINATION ${TONGSUO_MINI_INSTALL_DIR}/lib COMPONENT lib)
+install(TARGETS tongsuo-mini tongsuo-mini-static
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib COMPONENT lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib COMPONENT lib)
 
 install(TARGETS minisuo
-    DESTINATION ${TONGSUO_MINI_INSTALL_DIR}/bin
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     COMPONENT dev)
 
-if(WITH_PERF OR WITH_ALL)
+if(WITH_PERF)
     install(TARGETS minisuo-perf
-        DESTINATION ${TONGSUO_MINI_INSTALL_DIR}/bin
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
         COMPONENT dev)
 endif()

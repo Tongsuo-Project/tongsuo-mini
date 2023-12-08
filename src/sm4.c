@@ -313,12 +313,33 @@ static void sm4_decrypt(const uint8_t *in, uint8_t *out, uint32_t rk[SM4_KEY_SCH
     store_u32_be(B0, out + 12);
 }
 
-void *tsm_sm4_init(int mode, const unsigned char *key, const unsigned char *iv, int flags)
+void *tsm_sm4_ctx_new(void)
 {
-    TSM_SM4_CTX *ctx;
-    ctx = tsm_calloc(sizeof(TSM_SM4_CTX));
-    if (ctx == NULL)
+    TSM_SM4_CTX *c = NULL;
+
+    c = tsm_calloc(sizeof(*c));
+    if (c == NULL) {
+        LOGERR(TSM_ERR_MALLOC_FAILED);
         return NULL;
+    }
+
+    return c;
+}
+
+void tsm_sm4_ctx_free(void *ctx)
+{
+    TSM_SM4_CTX *c = ctx;
+
+    if (c == NULL)
+        return;
+
+    tsm_memzero(c, sizeof(*c));
+    tsm_free(c);
+}
+
+int tsm_sm4_init(void *c, int mode, const unsigned char *key, const unsigned char *iv, int flags)
+{
+    TSM_SM4_CTX *ctx = c;
 
     ctx->mode = mode;
     ctx->flags = flags;
@@ -327,15 +348,13 @@ void *tsm_sm4_init(int mode, const unsigned char *key, const unsigned char *iv, 
         ctx->block_size = 16;
         ctx->iv_len = 16;
     } else {
-        LOGE(tsm_err2str(TSM_ERR_WRONG_CIPH_MODE));
-        tsm_free(ctx);
-        return NULL;
+        return eLOG(TSM_ERR_WRONG_CIPH_MODE);
     }
 
     sm4_set_key(key, ctx->rk);
     memcpy(ctx->iv, iv, ctx->iv_len);
 
-    return ctx;
+    return TSM_OK;
 }
 
 static void cbc128_encrypt(const unsigned char *in, unsigned char *out, size_t len, const void *key,
@@ -568,9 +587,6 @@ int tsm_sm4_update(void *ctx, const unsigned char *in, size_t inl, unsigned char
         ret = tsm_sm4_decrypt_update(ctx, in, inl, out, outl);
     }
 
-    if (ret != TSM_OK)
-        tsm_free(ctx);
-
     return ret;
 }
 
@@ -671,45 +687,30 @@ int tsm_sm4_final(void *ctx, unsigned char *out, size_t *outl)
     else
         ret = tsm_sm4_decrypt_final(ctx, out, outl);
 
-    tsm_free(ctx);
-
     return ret;
-}
-
-static int tsm_sm4_crypt(int mode, const unsigned char *key, const unsigned char *iv,
-                         const unsigned char *in, size_t inl, unsigned char *out, size_t *outl,
-                         int flags)
-{
-    int ret;
-    size_t tmplen;
-    TSM_SM4_CTX *ctx = NULL;
-
-    ctx = tsm_sm4_init(mode, key, iv, flags);
-    if (ctx == NULL) {
-        LOGE("tsm_sm4_init failed");
-        return TSM_FAILED;
-    }
-
-    ret = tsm_sm4_update(ctx, in, inl, out, outl);
-    if (ret != TSM_OK) {
-        LOGE("tsm_sm4_update failed %s", tsm_err2str(ret));
-        return ret;
-    }
-
-    ret = tsm_sm4_final(ctx, out + *outl, &tmplen);
-    if (ret != TSM_OK) {
-        LOGE("tsm_sm4_final failed %s", tsm_err2str(ret));
-        return ret;
-    }
-
-    *outl += tmplen;
-
-    return TSM_OK;
 }
 
 int tsm_sm4_oneshot(int mode, const unsigned char *key, const unsigned char *iv,
                     const unsigned char *in, size_t inl, unsigned char *out, size_t *outl,
                     int flags)
 {
-    return tsm_sm4_crypt(mode, key, iv, in, inl, out, outl, flags);
+    int ret;
+    size_t tmplen;
+    TSM_SM4_CTX *ctx = NULL;
+
+    ctx = tsm_sm4_ctx_new();
+    if (ctx == NULL)
+        return eLOG(TSM_ERR_MALLOC_FAILED);
+
+    if ((ret = tsm_sm4_init(ctx, mode, key, iv, flags)) != TSM_OK
+        || (ret = tsm_sm4_update(ctx, in, inl, out, outl)) != TSM_OK
+        || (ret = tsm_sm4_final(ctx, out + *outl, &tmplen)) != TSM_OK) {
+        tsm_sm4_ctx_free(ctx);
+        return ret;
+    }
+
+    *outl += tmplen;
+
+    tsm_sm4_ctx_free(ctx);
+    return TSM_OK;
 }

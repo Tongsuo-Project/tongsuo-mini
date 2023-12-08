@@ -36,24 +36,29 @@ static int test_sm4_crypt(int idx)
     size_t outlen, tmplen;
 
     if (idx == 0) {
-        ctx =
-            tsm_sm4_init(TSM_CIPH_MODE_CBC, key, iv, TSM_CIPH_FLAG_ENCRYPT | TSM_CIPH_FLAG_NO_PAD);
+        ctx = tsm_sm4_ctx_new();
         ASSERT(ctx != NULL);
 
+        ASSERT_OK(tsm_sm4_init(ctx, TSM_CIPH_MODE_CBC, key, iv,
+                               TSM_CIPH_FLAG_ENCRYPT | TSM_CIPH_FLAG_NO_PAD));
         ASSERT_OK(tsm_sm4_update(ctx, plain, sizeof(plain), out, &outlen));
         ASSERT_OK(tsm_sm4_final(ctx, out + outlen, &tmplen));
 
         ASSERT(memcmp(out, cipher, sizeof(cipher)) == 0);
+
+        tsm_sm4_ctx_free(ctx);
     } else if (idx == 1) {
-        ctx =
-            tsm_sm4_init(TSM_CIPH_MODE_CBC, key, iv, TSM_CIPH_FLAG_DECRYPT | TSM_CIPH_FLAG_NO_PAD);
+        ctx = tsm_sm4_ctx_new();
         ASSERT(ctx != NULL);
 
+        ASSERT_OK(tsm_sm4_init(ctx, TSM_CIPH_MODE_CBC, key, iv,
+                               TSM_CIPH_FLAG_DECRYPT | TSM_CIPH_FLAG_NO_PAD));
         ASSERT_OK(tsm_sm4_update(ctx, cipher, sizeof(cipher), out, &outlen));
         ASSERT_OK(tsm_sm4_final(ctx, out + outlen, &tmplen));
 
         ASSERT(memcmp(out, plain, sizeof(plain)) == 0);
 
+        tsm_sm4_ctx_free(ctx);
     } else if (idx == 2) {
         ASSERT_OK(tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv, plain, sizeof(plain), out, &outlen,
                                   TSM_CIPH_FLAG_ENCRYPT | TSM_CIPH_FLAG_NO_PAD));

@@ -17,7 +17,7 @@
 # define SM4_KEY_SCHEDULE 32
 
 # pragma pack(1)
-typedef struct tsm_sm4_ctx_st {
+typedef struct tsm_sm4_ctx_s {
     uint32_t rk[SM4_KEY_SCHEDULE];
     unsigned char mode;
     unsigned char flags;
@@ -29,7 +29,6 @@ typedef struct tsm_sm4_ctx_st {
     int final_used;
     unsigned char final[TSM_MAX_BLOCK_LENGTH]; /* possible final block */
 } TSM_SM4_CTX;
-
 # pragma pack()
 
 #endif

@@ -10,9 +10,10 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include "internal/log.h"
+#include "internal/sm3.h"
 #include <tongsuo/sm3.h>
 #include <tongsuo/mem.h>
-#include <internal/log.h>
 
 #define SM3_A 0x7380166fUL
 #define SM3_B 0x4914b2b9UL
@@ -66,15 +67,33 @@
 #define R2(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
    RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF1,GG1)
 
-tsm_sm3_ctx *tsm_sm3_init(void)
+void *tsm_sm3_ctx_new(void)
 {
-    tsm_sm3_ctx *c = NULL;
+    TSM_SM3_CTX *c = NULL;
 
     c = tsm_calloc(sizeof(*c));
     if (c == NULL) {
-        LOGD("failed\n");
+        LOGERR(TSM_ERR_MALLOC_FAILED);
         return NULL;
     }
+
+    return c;
+}
+
+void tsm_sm3_ctx_free(void *ctx)
+{
+    TSM_SM3_CTX *c = ctx;
+
+    if (c == NULL)
+        return;
+
+    tsm_memzero(c, sizeof(*c));
+    tsm_free(c);
+}
+
+int tsm_sm3_init(void *ctx)
+{
+    TSM_SM3_CTX *c = ctx;
 
     c->A = SM3_A;
     c->B = SM3_B;
@@ -85,11 +104,12 @@ tsm_sm3_ctx *tsm_sm3_init(void)
     c->G = SM3_G;
     c->H = SM3_H;
 
-    return c;
+    return TSM_OK;
 }
 
-void tsm_sm3_transform(tsm_sm3_ctx *ctx, const void *p, size_t num)
+void tsm_sm3_transform(void *c, const void *p, size_t num)
 {
+    TSM_SM3_CTX *ctx = c;
     const unsigned char *data = p;
     register unsigned int A, B, C, D, E, F, G, H;
 
@@ -256,8 +276,9 @@ void tsm_sm3_transform(tsm_sm3_ctx *ctx, const void *p, size_t num)
     }
 }
 
-int tsm_sm3_update(tsm_sm3_ctx *c, const void *data_, size_t len)
+int tsm_sm3_update(void *ctx, const void *data_, size_t len)
 {
+    TSM_SM3_CTX *c = ctx;
     const unsigned char *data = data_;
     unsigned char *p;
     unsigned int l;
@@ -308,8 +329,9 @@ int tsm_sm3_update(tsm_sm3_ctx *c, const void *data_, size_t len)
     return TSM_OK;
 }
 
-int tsm_sm3_final(tsm_sm3_ctx *c, unsigned char *md)
+int tsm_sm3_final(void *ctx, unsigned char *md)
 {
+    TSM_SM3_CTX *c = ctx;
     unsigned char *p = (unsigned char *)c->data;
     size_t n = c->num;
     unsigned long ll;
@@ -349,20 +371,24 @@ int tsm_sm3_final(tsm_sm3_ctx *c, unsigned char *md)
     ll=c->H;
     (void)HOST_l2c(ll, md);
 
-    tsm_free(c);
-
     return TSM_OK;
 }
 
 int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md)
 {
-    tsm_sm3_ctx *ctx = NULL;
+    int ret;
+    TSM_SM3_CTX *ctx = NULL;
 
-    ctx = tsm_sm3_init();
-    if (ctx == NULL || tsm_sm3_update(ctx, data, len) != TSM_OK
-        || tsm_sm3_final(ctx, md) != TSM_OK) {
-        return TSM_FAILED;
+    ctx = tsm_sm3_ctx_new();
+    if (ctx == NULL)
+        return eLOG(TSM_ERR_MALLOC_FAILED);
+
+    if ((ret = tsm_sm3_init(ctx)) != TSM_OK || (ret = tsm_sm3_update(ctx, data, len)) != TSM_OK
+        || (ret = tsm_sm3_final(ctx, md)) != TSM_OK) {
+        tsm_sm3_ctx_free(ctx);
+        return ret;
     }
 
+    tsm_sm3_ctx_free(ctx);
     return TSM_OK;
 }

@@ -16,36 +16,6 @@
 #include <string.h>
 #include <inttypes.h>
 
-/*
- * Build the CBOR for external_aad
- *
- * external_aad = bstr .cbor aad_array
- *
- * No group mode
- * aad_array = [
- *   oscore_version : uint,
- *   algorithms : [ alg_aead : int / tstr ],
- *   request_kid : bstr,
- *   request_piv : bstr,
- *   options : bstr,
- * ]
- *
- * Group mode
- * aad_array = [
- *   oscore_version : uint,
- *   algorithms : [alg_aead : int / tstr / null,
- *                 alg_signature_enc : int / tstr / null,
- *                 alg_signature : int / tstr / null,
- *                 alg_pairwise_key_agreement : int / tstr / null],
- *   request_kid : bstr,
- *   request_piv : bstr,
- *   options : bstr,
- *   request_kid_context : bstr,
- *   OSCORE_option: bstr,
- *   sender_public_key: bstr,        (initiator's key)
- *   gm_public_key: bstr / null
- * ]
- */
 size_t tsm_oscore_prepare_e_aad(oscore_ctx_t *ctx,
                                 cose_encrypt0_t *cose,
                                 const uint8_t *oscore_option,
@@ -90,9 +60,6 @@ size_t tsm_oscore_prepare_e_aad(oscore_ctx_t *ctx,
     return external_aad_len;
 }
 
-/*
- * tsm_oscore_encode_option_value
- */
 size_t tsm_oscore_encode_option_value(uint8_t *option_buffer,
                                       size_t option_buf_len,
                                       cose_encrypt0_t *cose,
@@ -160,13 +127,6 @@ size_t tsm_oscore_encode_option_value(uint8_t *option_buffer,
     return offset;
 }
 
-/*
- * tsm_oscore_decode_option_value
- * error: return 0
- * OK: return 1
- *
- * Basic assupmption is that all is preset to 0 or NULL on entry
- */
 int tsm_oscore_decode_option_value(const uint8_t *opt_value,
                                    size_t option_len,
                                    cose_encrypt0_t *cose)
@@ -178,20 +138,20 @@ int tsm_oscore_decode_option_value(const uint8_t *opt_value,
     cose->oscore_option.length = option_len;
 
     if (option_len == 0)
-        return 1; /* empty option */
+        return TSM_OK; /* empty option */
 
     if (option_len > 255 || partial_iv_len == 6 || partial_iv_len == 7
         || (opt_value[0] & 0xC0) != 0) {
-        return 0;
+        return TSM_FAILED;
     }
 
     if ((opt_value[0] & 0x20) != 0) {
-        return 0;
+        return TSM_FAILED;
     }
 
     if (partial_iv_len != 0) {
         if (offset + partial_iv_len > option_len) {
-            return 0;
+            return TSM_FAILED;
         }
         tsm_cose_encrypt0_set_partial_iv(cose, &(opt_value[offset]), partial_iv_len);
         offset += partial_iv_len;
@@ -201,11 +161,11 @@ int tsm_oscore_decode_option_value(const uint8_t *opt_value,
         TSM_STR kid_context;
 
         if (offset >= option_len)
-            return 0;
+            return TSM_FAILED;
         kid_context.length = opt_value[offset];
         offset++;
         if (offset + kid_context.length > option_len) {
-            return 0;
+            return TSM_FAILED;
         }
         kid_context.s = &(opt_value[offset]);
         tsm_cose_encrypt0_set_kid_context(cose, kid_context.s, kid_context.length);
@@ -214,19 +174,14 @@ int tsm_oscore_decode_option_value(const uint8_t *opt_value,
 
     if ((opt_value[0] & 0x08) != 0) {
         if (option_len - offset < 0) {
-            return 0;
+            return TSM_FAILED;
         }
 
         tsm_cose_encrypt0_set_key_id(cose, &(opt_value[offset]), option_len - offset);
     }
-    return 1;
+    return TSM_OK;
 }
 
-/*
- * tsm_oscore_prepare_aad
- *
- * Creates and sets External AAD for encryption
- */
 size_t tsm_oscore_prepare_aad(const uint8_t *external_aad_buffer,
                               size_t external_aad_len,
                               uint8_t *aad_buffer,
@@ -249,11 +204,6 @@ size_t tsm_oscore_prepare_aad(const uint8_t *external_aad_buffer,
     return ret;
 }
 
-/*
- * tsm_oscore_generate_nonce
- *
- * Creates Nonce
- */
 void tsm_oscore_generate_nonce(cose_encrypt0_t *ptr,
                                oscore_ctx_t *ctx,
                                uint8_t *buffer,
@@ -278,18 +228,13 @@ static uint64_t decode_var_bytes8(const uint8_t *buf, size_t len)
     return n;
 }
 
-/*
- * tsm_oscore_validate_sender_seq
- *
- * Return 1 if OK, 0 otherwise
- */
-uint8_t tsm_oscore_validate_sender_seq(oscore_recipient_ctx_t *ctx, cose_encrypt0_t *cose)
+int tsm_oscore_validate_sender_seq(oscore_recipient_ctx_t *ctx, cose_encrypt0_t *cose)
 {
     uint64_t incoming_seq = decode_var_bytes8(cose->partial_iv.s, cose->partial_iv.length);
 
     if (incoming_seq >= OSCORE_SEQ_MAX) {
         LOGW("OSCORE Replay protection, SEQ larger than SEQ_MAX.\n");
-        return 0;
+        return TSM_ERR_INVALID_SEQ;
     }
 
     ctx->rollback_last_seq = ctx->last_seq;
@@ -310,7 +255,7 @@ uint8_t tsm_oscore_validate_sender_seq(oscore_recipient_ctx_t *ctx, cose_encrypt
         ctx->last_seq = incoming_seq;
     } else if (incoming_seq == ctx->last_seq) {
         LOGW("OSCORE: Replay protection, replayed SEQ (%" PRIu64 ")\n", incoming_seq);
-        return 0;
+        return TSM_ERR_REPLAYED_SEQ;
     } else { /* incoming_seq < last_seq */
         uint64_t shift = ctx->last_seq - incoming_seq - 1;
         uint64_t pattern;
@@ -320,13 +265,13 @@ uint8_t tsm_oscore_validate_sender_seq(oscore_recipient_ctx_t *ctx, cose_encrypt
                  ")\n",
                  ctx->last_seq,
                  incoming_seq);
-            return 0;
+            return TSM_ERR_REPLAYED_SEQ;
         }
         /* seq + replay_window_size > last_seq */
         pattern = 1ULL << shift;
         if (ctx->sliding_window & pattern) {
             LOGW("OSCORE: Replay protection, replayed SEQ (%" PRIu64 ")\n", incoming_seq);
-            return 0;
+            return TSM_ERR_REPLAYED_SEQ;
         }
         /* bitfield. B0 biggest seq seen.  B1 seq-1 seen, B2 seq-2 seen etc. */
         ctx->sliding_window |= pattern;
@@ -335,23 +280,18 @@ uint8_t tsm_oscore_validate_sender_seq(oscore_recipient_ctx_t *ctx, cose_encrypt
          ctx->sliding_window,
          ctx->last_seq,
          incoming_seq);
-    return 1;
+    return TSM_OK;
 }
 
-/*
- * tsm_oscore_increment_sender_seq
- *
- * Return 0 if SEQ MAX, return 1 if OK
- */
-uint8_t tsm_oscore_increment_sender_seq(oscore_ctx_t *ctx)
+int tsm_oscore_increment_sender_seq(oscore_ctx_t *ctx)
 {
     ctx->sender_context->seq++;
 
     if (ctx->sender_context->seq >= OSCORE_SEQ_MAX) {
-        return 0;
-    } else {
-        return 1;
+        return TSM_ERR_INVALID_SEQ;
     }
+
+    return TSM_OK;
 }
 
 /*

@@ -23,14 +23,15 @@
 
 #include <tongsuo/ascon.h>
 #include <tongsuo/minisuo.h>
+#include <tongsuo/mem.h>
 #include <tongsuo/sm3.h>
 #include <tongsuo/sm4.h>
 
 static long long get_time(void);
 
 /* iteration number, could be adjusted as required */
-#define ITR_NUM 100
-#define RND_DATA_SIZE 1024 * 1024
+#define ITR_NUM       1000 * 1000
+#define RND_DATA_SIZE 1024
 
 /* time difference on each index */
 struct perf_index {
@@ -44,12 +45,12 @@ struct perf_index {
 
 /* final result in Mbps */
 struct perf_result {
-    int sm3_hash_avg;
-    int ascon_hash_avg;
-    int sm4_cbc_enc_avg;
-    int sm4_cbc_dec_avg;
-    int ascon_aead_enc_avg;
-    int ascon_aead_dec_avg;
+    long long sm3_hash_avg;
+    long long ascon_hash_avg;
+    long long sm4_cbc_enc_avg;
+    long long sm4_cbc_dec_avg;
+    long long ascon_aead_enc_avg;
+    long long ascon_aead_dec_avg;
 };
 
 static long long get_time(void)
@@ -65,6 +66,7 @@ static long long get_time(void)
 
 int main(void)
 {
+    int ret = 1;
     struct perf_index *indices = NULL;
     struct perf_result result;
     int i = 0;
@@ -82,22 +84,28 @@ int main(void)
     unsigned char ad[] = "performance test program";
 
     memset(&result, 0, sizeof(result));
-    indices = malloc(sizeof(struct perf_index) * ITR_NUM);
+    indices = tsm_alloc(sizeof(struct perf_index) * ITR_NUM);
     if (indices == NULL) {
         fprintf(stderr, "malloc error - indices\n");
         return -1;
     }
     memset(indices, 0, sizeof(struct perf_index) * ITR_NUM);
 
-    rnd_data = malloc(RND_DATA_SIZE);
-    if (rnd_data == NULL) {
-        fprintf(stderr, "malloc error - rnd data\n");
-        free(indices);
-        return -1;
+    out = tsm_alloc(inlen * 2);
+    if (out == NULL) {
+        goto err;
+    }
+
+    out2 = tsm_alloc(inlen * 2);
+    if (out2 == NULL) {
+        goto err;
     }
 
     for (; i < ITR_NUM; i++) {
-        fprintf(stdout, "Iteration %d: ", i);
+        rnd_data = tsm_alloc(inlen);
+        if (rnd_data == NULL) {
+            goto err;
+        }
 
         /* SM3 hash */
         start = get_time();
@@ -115,10 +123,6 @@ int main(void)
         end = get_time();
         indices[i].ascon_hash = 1000 * 1000 * 8 / (end - start);
 
-        out = malloc(inlen * 2);
-        if (out == NULL) {
-            goto err;
-        }
         /* SM4 CBC encrypt */
         start = get_time();
         if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv, rnd_data, inlen, out, &outlen,
@@ -129,10 +133,6 @@ int main(void)
         end = get_time();
         indices[i].sm4_cbc_enc = 1000 * 1000 * 8 / (end - start);
 
-        out2 = malloc(outlen * 2);
-        if (out2 == NULL) {
-            goto err;
-        }
         /* SM4 CBC decrypt */
         start = get_time();
         if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC, key, iv, out, outlen, out2, &out2len,
@@ -143,44 +143,26 @@ int main(void)
         end = get_time();
         indices[i].sm4_cbc_dec = 1000 * 1000 * 8 / (end - start);
 
-        free(out);
-        free(out2);
-
-        out = malloc(inlen * 2);
-        if (out == NULL) {
-            goto err;
-        }
         /* ASCON aead encrypt */
         start = get_time();
-        if (tsm_ascon_aead_oneshot(TSM_ASCON_AEAD_128, key, iv,
-                                   ad, sizeof(ad), rnd_data, inlen,
-                                   out, (int *)&outlen,
-                                   TSM_CIPH_FLAG_ENCRYPT) != TSM_OK) {
+        if (tsm_ascon_aead_oneshot(TSM_ASCON_AEAD_128, key, iv, ad, sizeof(ad), rnd_data, inlen,
+                                   out, &outlen, TSM_CIPH_FLAG_ENCRYPT)
+            != TSM_OK) {
             goto err;
         }
         end = get_time();
         indices[i].ascon_aead_enc = 1000 * 1000 * 8 / (end - start);
 
-        out2 = malloc(outlen * 2);
-        if (out2 == NULL) {
-            goto err;
-        }
         /* ASCON aead decrypt */
         start = get_time();
-        if (tsm_ascon_aead_oneshot(TSM_ASCON_AEAD_128, key, iv,
-                                   ad, sizeof(ad), out, outlen,
-                                   out2, (int *)&out2len,
-                                   TSM_CIPH_FLAG_DECRYPT) != TSM_OK) {
+        if (tsm_ascon_aead_oneshot(TSM_ASCON_AEAD_128, key, iv, ad, sizeof(ad), out, outlen, out2,
+                                   &out2len, TSM_CIPH_FLAG_DECRYPT)
+            != TSM_OK) {
             goto err;
         }
         end = get_time();
         indices[i].ascon_aead_dec = 1000 * 1000 * 8 / (end - start);
-
-        free(out);
-        free(out2);
-        out = NULL;
-        out2 = NULL;
-#if 1
+#if 0
         fprintf(stdout, "sm3-hash: %d, "
                         "ascon-hash: %d, "
                         "sm4-cbc-enc: %d, "
@@ -210,21 +192,24 @@ int main(void)
     result.ascon_aead_enc_avg /= ITR_NUM;
     result.ascon_aead_dec_avg /= ITR_NUM;
 
-    fprintf(stdout, "Final result:\n"
-            "sm3-hash: %d Mbps\n"
-            "ascon-hash: %d Mbps\n"
-            "sm4-cbc-enc: %d Mbps\n"
-            "sm4-cbc-dec: %d Mbps\n"
-            "ascon-aead-enc: %d Mbps\n"
-            "ascon-aead-dec: %d Mbps\n",
-            result.sm3_hash_avg, result.ascon_hash_avg,
-            result.sm4_cbc_enc_avg, result.sm4_cbc_dec_avg,
-            result.ascon_aead_enc_avg, result.ascon_aead_dec_avg);
+    fprintf(stdout,
+            "Final result:\n"
+            "sm3-hash: %lld kbps\n"
+            "ascon-hash: %lld kbps\n"
+            "sm4-cbc-enc: %lld kbps\n"
+            "sm4-cbc-dec: %lld kbps\n"
+            "ascon-aead-enc: %lld kbps\n"
+            "ascon-aead-dec: %lld kbps\n",
+            result.sm3_hash_avg, result.ascon_hash_avg, result.sm4_cbc_enc_avg,
+            result.sm4_cbc_dec_avg, result.ascon_aead_enc_avg, result.ascon_aead_dec_avg);
 
-    free(rnd_data);
-    return 0;
+    ret = 0;
 err:
-    fprintf(stderr, "failed\n");
-    free(rnd_data);
-    return -1;
+
+    tsm_free(out);
+    tsm_free(out2);
+    tsm_free(indices);
+    tsm_free(rnd_data);
+
+    return ret;
 }

@@ -19,20 +19,24 @@ extern "C" {
 
 # define TSM_SM3_DIGEST_LEN  32
 
-# define TSM_SM3_CBLOCK      64
-# define TSM_SM3_LBLOCK      16
-
-typedef struct {
-   unsigned int A, B, C, D, E, F, G, H;
-   unsigned int Nl, Nh;
-   unsigned int data[TSM_SM3_LBLOCK];
-   unsigned int num;
-} tsm_sm3_ctx;
-
-tsm_sm3_ctx *tsm_sm3_init(void);
-int tsm_sm3_update(tsm_sm3_ctx *c, const void *data, size_t len);
-int tsm_sm3_final(tsm_sm3_ctx *c, unsigned char *md);
-void tsm_sm3_transform(tsm_sm3_ctx *c, const void *data, size_t num);
+/* Create a new context of sm3. The context should be freed by calling tsm_sm3_ctx_free() after use.
+ */
+void *tsm_sm3_ctx_new(void);
+/* Frees up the context of sm3. */
+void tsm_sm3_ctx_free(void *ctx);
+/* Initialize the sm3 context. Returns TSM_OK on success, error code on error. */
+int tsm_sm3_init(void *ctx);
+/* Updates the sm3 context with the given data in and data length len. Returns TSM_OK on success,
+ * error code on error. */
+int tsm_sm3_update(void *ctx, const void *data, size_t len);
+/* Finalizes the sm3 context and writes the result to md. The buffer md must hold TSM_SM3_DIGEST_LEN
+ * bytes. Returns TSM_OK on success, error code on error. */
+int tsm_sm3_final(void *ctx, unsigned char *md);
+/* Perform SM3 transformation with the given data data and data length num. */
+void tsm_sm3_transform(void *ctx, const void *data, size_t num);
+/* Computes the SM3 hash of the given data data and data length len. The result is written to md.
+ * The buffer md must hold TSM_SM3_DIGEST_LEN bytes. Returns TSM_OK on success, error code on error.
+ */
 int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md);
 
 # ifdef __cplusplus

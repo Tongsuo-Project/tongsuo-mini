@@ -30,7 +30,8 @@ static int oscore_hmac_hash(cose_hmac_alg_t hmac_alg, TSM_STR *key, TSM_STR *dat
     if (out == NULL)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
-    if ((ret = tsm_hmac(meth, key->s, key->length, data->s, data->length, out, &outl)) != TSM_OK) {
+    if ((ret = tsm_hmac_oneshot(meth, key->s, key->length, data->s, data->length, out, &outl))
+        != TSM_OK) {
         tsm_free(out);
         LOGE("oscore_hmac_hash: Failed hmac\n");
         return ret;
@@ -49,7 +50,7 @@ oscore_hkdf_extract(cose_hkdf_alg_t hkdf_alg, TSM_STR *salt, TSM_STR *ikm, TSM_S
     int ret;
 
     assert(ikm);
-    if ((ret = cose_get_hmac_alg_for_hkdf(hkdf_alg, &hmac_alg)) != TSM_OK)
+    if ((ret = tsm_cose_get_hmac_alg_for_hkdf(hkdf_alg, &hmac_alg)) != TSM_OK)
         return ret;
     if (salt == NULL || salt->s == NULL) {
         uint8_t zeroes_data[32];
@@ -81,7 +82,7 @@ static int oscore_hkdf_expand(cose_hkdf_alg_t hkdf_alg,
     TSM_STR *hkdf = NULL;
     cose_hmac_alg_t hmac_alg;
 
-    if ((ret = cose_get_hmac_alg_for_hkdf(hkdf_alg, &hmac_alg)) != TSM_OK)
+    if ((ret = tsm_cose_get_hmac_alg_for_hkdf(hkdf_alg, &hmac_alg)) != TSM_OK)
         goto fail;
     /* Compose T(1) */
     memcpy(aggregate_buffer, info, info_len);

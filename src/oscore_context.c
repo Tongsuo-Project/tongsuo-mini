@@ -224,9 +224,10 @@ static void oscore_log_context(oscore_ctx_t *osc_ctx, const char *heading)
 
     LOGI("%s\n", heading);
     tsm_oscore_log_char_value(TSM_LOG_INFO, "AEAD alg",
-                              cose_get_alg_name(osc_ctx->aead_alg, buffer, sizeof(buffer)));
+                              tsm_cose_get_alg_name(osc_ctx->aead_alg, buffer, sizeof(buffer)));
     tsm_oscore_log_char_value(TSM_LOG_INFO, "HKDF alg",
-                              cose_get_hkdf_alg_name(osc_ctx->hkdf_alg, buffer, sizeof(buffer)));
+                              tsm_cose_get_hkdf_alg_name(osc_ctx->hkdf_alg, buffer,
+                                                         sizeof(buffer)));
     tsm_oscore_log_hex_value(TSM_LOG_INFO, "ID Context", osc_ctx->id_context);
     tsm_oscore_log_hex_value(TSM_LOG_INFO, "Master Secret", osc_ctx->master_secret);
     tsm_oscore_log_hex_value(TSM_LOG_INFO, "Master Salt", osc_ctx->master_salt);
@@ -256,7 +257,7 @@ void tsm_oscore_ctx_update(oscore_ctx_t *osc_ctx, TSM_STR *id_context)
     osc_ctx->sender_context->sender_key = oscore_build_key(osc_ctx,
                                                            osc_ctx->sender_context->sender_id,
                                                            tsm_str("Key"),
-                                                           cose_key_len(osc_ctx->aead_alg));
+                                                           tsm_cose_key_len(osc_ctx->aead_alg));
     if (!osc_ctx->sender_context->sender_key)
         osc_ctx->sender_context->sender_key = temp;
     else
@@ -266,14 +267,14 @@ void tsm_oscore_ctx_update(oscore_ctx_t *osc_ctx, TSM_STR *id_context)
         oscore_build_key(osc_ctx,
                          osc_ctx->recipient_chain->recipient_id,
                          tsm_str("Key"),
-                         cose_key_len(osc_ctx->aead_alg));
+                         tsm_cose_key_len(osc_ctx->aead_alg));
     if (!osc_ctx->recipient_chain->recipient_key)
         osc_ctx->recipient_chain->recipient_key = temp;
     else
         tsm_str_free(temp);
     temp = osc_ctx->common_iv;
     osc_ctx->common_iv =
-        oscore_build_key(osc_ctx, NULL, tsm_str("IV"), cose_nonce_len(osc_ctx->aead_alg));
+        oscore_build_key(osc_ctx, NULL, tsm_str("IV"), tsm_cose_nonce_len(osc_ctx->aead_alg));
     if (!osc_ctx->common_iv)
         osc_ctx->common_iv = temp;
     else
@@ -317,14 +318,14 @@ oscore_ctx_t *tsm_oscore_ctx_dup(oscore_ctx_t *o_osc_ctx,
 
     if (o_osc_ctx->master_secret) {
         /* sender_ key */
-        sender_ctx->sender_key =
-            oscore_build_key(osc_ctx, sender_id, tsm_str("Key"), cose_key_len(osc_ctx->aead_alg));
+        sender_ctx->sender_key = oscore_build_key(osc_ctx, sender_id, tsm_str("Key"),
+                                                  tsm_cose_key_len(osc_ctx->aead_alg));
         if (!sender_ctx->sender_key)
             goto error;
 
         /* common IV */
         osc_ctx->common_iv =
-            oscore_build_key(osc_ctx, NULL, tsm_str("IV"), cose_nonce_len(osc_ctx->aead_alg));
+            oscore_build_key(osc_ctx, NULL, tsm_str("IV"), tsm_cose_nonce_len(osc_ctx->aead_alg));
         if (!osc_ctx->common_iv)
             goto error;
     }
@@ -390,17 +391,19 @@ oscore_ctx_t *tsm_oscore_ctx_new(TSM_OSCORE_CONF *oscore_conf)
         /* sender_ key */
         if (oscore_conf->break_sender_key)
             /* Interop testing */
-            sender_ctx->sender_key = oscore_build_key(
-                osc_ctx, oscore_conf->sender_id, tsm_str("BAD"), cose_key_len(osc_ctx->aead_alg));
+            sender_ctx->sender_key =
+                oscore_build_key(osc_ctx, oscore_conf->sender_id, tsm_str("BAD"),
+                                 tsm_cose_key_len(osc_ctx->aead_alg));
         else
-            sender_ctx->sender_key = oscore_build_key(
-                osc_ctx, oscore_conf->sender_id, tsm_str("Key"), cose_key_len(osc_ctx->aead_alg));
+            sender_ctx->sender_key =
+                oscore_build_key(osc_ctx, oscore_conf->sender_id, tsm_str("Key"),
+                                 tsm_cose_key_len(osc_ctx->aead_alg));
         if (!sender_ctx->sender_key)
             goto error;
 
         /* common IV */
         osc_ctx->common_iv =
-            oscore_build_key(osc_ctx, NULL, tsm_str("IV"), cose_nonce_len(osc_ctx->aead_alg));
+            oscore_build_key(osc_ctx, NULL, tsm_str("IV"), tsm_cose_nonce_len(osc_ctx->aead_alg));
         if (!osc_ctx->common_iv)
             goto error;
     }
@@ -462,10 +465,10 @@ oscore_recipient_ctx_t *tsm_oscore_add_recipient(oscore_ctx_t *osc_ctx, TSM_STR 
         if (break_key)
             /* Interop testing */
             recipient_ctx->recipient_key =
-                oscore_build_key(osc_ctx, rid, tsm_str("BAD"), cose_key_len(osc_ctx->aead_alg));
+                oscore_build_key(osc_ctx, rid, tsm_str("BAD"), tsm_cose_key_len(osc_ctx->aead_alg));
         else
             recipient_ctx->recipient_key =
-                oscore_build_key(osc_ctx, rid, tsm_str("Key"), cose_key_len(osc_ctx->aead_alg));
+                oscore_build_key(osc_ctx, rid, tsm_str("Key"), tsm_cose_key_len(osc_ctx->aead_alg));
         if (!recipient_ctx->recipient_key) {
             tsm_free(recipient_ctx);
             return NULL;

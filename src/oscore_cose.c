@@ -15,38 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct cose_curve_desc {
-    const char *name;
-    cose_curve_t id;
-};
-
-static struct cose_curve_desc curve_mapping[] = {
-    {"P-256", COSE_CURVE_P_256}, {"X25519", COSE_CURVE_X25519},
-    {"X448", COSE_CURVE_X448},   {"Ed25519", COSE_CURVE_ED25519},
-    {"Ed448", COSE_CURVE_ED448}, {"secp256k1", COSE_CURVE_SECP256K1},
-};
-
-const char *cose_get_curve_name(cose_curve_t id, char *buffer, size_t buflen)
-{
-    for (size_t i = 0; i < sizeof(curve_mapping) / sizeof(curve_mapping[0]); i++) {
-        if (id == curve_mapping[i].id) {
-            snprintf(buffer, buflen, "%s (%d)", curve_mapping[i].name, id);
-            return buffer;
-        }
-    }
-    snprintf(buffer, buflen, "curve Fix me (%d)", id);
-    return buffer;
-}
-
-cose_curve_t cose_get_curve_id(const char *name)
-{
-    for (size_t i = 0; i < sizeof(curve_mapping) / sizeof(curve_mapping[0]); i++) {
-        if (strcmp(name, curve_mapping[i].name) == 0)
-            return curve_mapping[i].id;
-    }
-    return 0;
-}
-
 struct cose_alg_desc {
     const char *name;
     cose_alg_t id;
@@ -84,7 +52,7 @@ static struct cose_alg_desc alg_mapping[] = {
     {"AES-CCM-64-128-256", COSE_ALGORITHM_AES_CCM_64_128_256},
 };
 
-const char *cose_get_alg_name(cose_alg_t id, char *buffer, size_t buflen)
+const char *tsm_cose_get_alg_name(cose_alg_t id, char *buffer, size_t buflen)
 {
     for (size_t i = 0; i < sizeof(alg_mapping) / sizeof(alg_mapping[0]); i++) {
         if (id == alg_mapping[i].id) {
@@ -96,7 +64,7 @@ const char *cose_get_alg_name(cose_alg_t id, char *buffer, size_t buflen)
     return buffer;
 }
 
-cose_alg_t cose_get_alg_id(const char *name)
+cose_alg_t tsm_cose_get_alg_id(const char *name)
 {
     for (size_t i = 0; i < sizeof(alg_mapping) / sizeof(alg_mapping[0]); i++) {
         if (strcmp(name, alg_mapping[i].name) == 0)
@@ -111,11 +79,15 @@ struct cose_hkdf_alg_desc {
 };
 
 static struct cose_hkdf_alg_desc hkdf_alg_mapping[] = {
-    {"direct+HKDF-SHA-512", COSE_HKDF_ALG_HKDF_SHA_512},
-    {"direct+HKDF-SHA-256", COSE_HKDF_ALG_HKDF_SHA_256},
+    /*
+        {"direct+HKDF-SHA-512", COSE_HKDF_ALG_HKDF_SHA_512},
+        {"direct+HKDF-SHA-256", COSE_HKDF_ALG_HKDF_SHA_256},
+    */
+    {"direct+HKDF-ASCON-HASH", COSE_HKDF_ALG_HKDF_ASCON_HASH},
+    {"direct+HKDF-ASCON-HASHA", COSE_HKDF_ALG_HKDF_ASCON_HASHA},
 };
 
-const char *cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t buflen)
+const char *tsm_cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t buflen)
 {
     for (size_t i = 0; i < sizeof(hkdf_alg_mapping) / sizeof(hkdf_alg_mapping[0]); i++) {
         if (id == hkdf_alg_mapping[i].id) {
@@ -128,7 +100,7 @@ const char *cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t bufl
 }
 
 /*
- * The struct hmac_algs and the function cose_get_hmac_alg_for_hkdf() are
+ * The struct hmac_algs and the function tsm_cose_get_hmac_alg_for_hkdf() are
  * used to determine which hmac type to use for the appropriate hkdf
  */
 static struct hkdf_hmac_algs {
@@ -139,7 +111,7 @@ static struct hkdf_hmac_algs {
                   {COSE_HKDF_ALG_HKDF_ASCON_HASH, TSM_ASCON_AEAD_128},
                   {COSE_HKDF_ALG_HKDF_ASCON_HASHA, TSM_ASCON_AEAD_128A}};
 
-int cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg)
+int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg)
 {
     size_t idx;
 
@@ -149,12 +121,12 @@ int cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_a
             return TSM_OK;
         }
     }
-    LOGD("cose_get_hmac_alg_for_hkdf: COSE HKDF %d not supported\n", hkdf_alg);
+    LOGD("tsm_cose_get_hmac_alg_for_hkdf: COSE HKDF %d not supported\n", hkdf_alg);
     return TSM_ERR_ALGORITHM_NOT_SUPPORTED;
 }
 
 /* return tag length belonging to cose algorithm */
-size_t cose_tag_len(cose_alg_t cose_alg)
+size_t tsm_cose_tag_len(cose_alg_t cose_alg)
 {
     switch ((int)cose_alg) {
     case COSE_ALGORITHM_AES_CCM_16_64_128:
@@ -175,7 +147,7 @@ size_t cose_tag_len(cose_alg_t cose_alg)
 }
 
 /* return hash length belonging to cose algorithm */
-size_t cose_hash_len(cose_alg_t cose_alg)
+size_t tsm_cose_hash_len(cose_alg_t cose_alg)
 {
     switch ((int)cose_alg) {
     case COSE_ALGORITHM_ES256:
@@ -206,7 +178,7 @@ size_t cose_hash_len(cose_alg_t cose_alg)
 }
 
 /* return nonce length belonging to cose algorithm */
-size_t cose_nonce_len(cose_alg_t cose_alg)
+size_t tsm_cose_nonce_len(cose_alg_t cose_alg)
 {
     switch ((int)cose_alg) {
     case COSE_ALGORITHM_AES_CCM_16_64_128:
@@ -227,7 +199,7 @@ size_t cose_nonce_len(cose_alg_t cose_alg)
 }
 
 /* return key length belonging to cose algorithm */
-size_t cose_key_len(cose_alg_t cose_alg)
+size_t tsm_cose_key_len(cose_alg_t cose_alg)
 {
     switch ((int)cose_alg) {
     case COSE_ALGORITHM_AES_CCM_16_64_128:
@@ -343,16 +315,15 @@ void tsm_cose_encrypt0_set_aad(cose_encrypt0_t *ptr, const uint8_t *aad, size_t 
     }
 }
 
-/* Returns 1 if successfull, 0 if key is of incorrect length. */
 int tsm_cose_encrypt0_set_key(cose_encrypt0_t *ptr, const uint8_t *key, size_t length)
 {
     if (key == NULL || length != 16) {
-        return 0;
+        return TSM_FAILED;
     }
 
     ptr->key.s = key;
     ptr->key.length = length;
-    return 1;
+    return TSM_OK;
 }
 
 void tsm_cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, const uint8_t *nonce, size_t length)
@@ -369,13 +340,13 @@ void tsm_cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, const uint8_t *nonce, siz
 int tsm_cose_encrypt0_encrypt(cose_encrypt0_t *ptr, uint8_t *ciphertext_buffer,
                               size_t ciphertext_len)
 {
-    size_t tag_len = cose_tag_len(ptr->alg);
-    int max_result_len = ptr->plaintext.length + tag_len;
+    size_t tag_len = tsm_cose_tag_len(ptr->alg);
+    size_t max_result_len = ptr->plaintext.length + tag_len;
 
-    if (ptr->key.s == NULL || ptr->key.length != (size_t)cose_key_len(ptr->alg)) {
+    if (ptr->key.s == NULL || ptr->key.length != (size_t)tsm_cose_key_len(ptr->alg)) {
         return -1;
     }
-    if (ptr->nonce.s == NULL || ptr->nonce.length != (size_t)cose_nonce_len(ptr->alg)) {
+    if (ptr->nonce.s == NULL || ptr->nonce.length != (size_t)tsm_cose_nonce_len(ptr->alg)) {
         return -2;
     }
     if (ptr->aad.s == NULL || ptr->aad.length == 0) {
@@ -404,13 +375,13 @@ int tsm_cose_encrypt0_encrypt(cose_encrypt0_t *ptr, uint8_t *ciphertext_buffer,
 int tsm_cose_encrypt0_decrypt(cose_encrypt0_t *ptr, uint8_t *plaintext_buffer, size_t plaintext_len)
 {
     int ret_len = 0;
-    size_t tag_len = cose_tag_len(ptr->alg);
-    int max_result_len = ptr->ciphertext.length - tag_len;
+    size_t tag_len = tsm_cose_tag_len(ptr->alg);
+    size_t max_result_len = ptr->ciphertext.length - tag_len;
 
-    if (ptr->key.s == NULL || ptr->key.length != (size_t)cose_key_len(ptr->alg)) {
+    if (ptr->key.s == NULL || ptr->key.length != (size_t)tsm_cose_key_len(ptr->alg)) {
         return -1;
     }
-    if (ptr->nonce.s == NULL || ptr->nonce.length != (size_t)cose_nonce_len(ptr->alg)) {
+    if (ptr->nonce.s == NULL || ptr->nonce.length != (size_t)tsm_cose_nonce_len(ptr->alg)) {
         return -2;
     }
     if (ptr->aad.s == NULL || ptr->aad.length == 0) {
