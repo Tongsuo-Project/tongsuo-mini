@@ -167,8 +167,8 @@ int tsm_hmac_final(void *ctx, unsigned char *out, size_t *outl)
     return TSM_OK;
 }
 
-int tsm_hmac(void *meth, const unsigned char *key, size_t keylen, const unsigned char *in,
-             size_t inlen, unsigned char *out, size_t *outl)
+int tsm_hmac_oneshot(void *meth, const unsigned char *key, size_t keylen, const unsigned char *in,
+                     size_t inlen, unsigned char *out, size_t *outl)
 {
     TSM_HMAC_CTX *ctx;
     int ret;

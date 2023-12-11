@@ -20,24 +20,6 @@ extern "C" {
 
 # define AES_CCM_TAG 16
 
-/* cose curves */
-typedef enum {
-    COSE_CURVE_P_256 = 1, /* NIST P-256 known as secp256r1 */
-    COSE_CURVE_X25519 = 4, /* used with ECDH only      */
-    COSE_CURVE_X448 = 5, /* used with ECDH only      */
-    COSE_CURVE_ED25519 = 6, /* used with EdDSA only     */
-    COSE_CURVE_ED448 = 7, /* used with EdDSA only     */
-    COSE_CURVE_SECP256K1 = 8, /* SECG secp256k1 curve */
-} cose_curve_t;
-
-typedef enum {
-    COSE_KTY_UNKNOWN,
-    COSE_KTY_OKP = 1,
-    COSE_KTY_EC2 = 2,
-    COSE_KTY_RSA = 3,
-    COSE_KTY_SYMMETRIC = 4,
-} cose_key_type_t;
-
 # define COSE_ALGORITHM_ED25519_SIG_LEN              64
 # define COSE_ALGORITHM_ED25519_PRIV_KEY_LEN         32
 # define COSE_ALGORITHM_ED25519_PUB_KEY_LEN          32
@@ -149,32 +131,27 @@ typedef enum {
     COSE_HKDF_ALG_HKDF_SHA_256 = -10,
 } cose_hkdf_alg_t;
 
-const char *cose_get_curve_name(cose_curve_t id, char *buffer, size_t buflen);
-cose_curve_t cose_get_curve_id(const char *name);
-
-const char *cose_get_alg_name(cose_alg_t id, char *buffer, size_t buflen);
-cose_alg_t cose_get_alg_id(const char *name);
-
-const char *cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t buflen);
-
-int cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg);
-
-/* parameter value functions */
-
-/* return tag length belonging to cose algorithm */
-size_t cose_tag_len(cose_alg_t cose_alg);
-
-/* return hash length belonging to cose algorithm */
-size_t cose_hash_len(cose_alg_t cose_alg);
-
-/* return nonce length belonging to cose algorithm */
-size_t cose_nonce_len(cose_alg_t cose_alg);
-
-/* return key length belonging to cose algorithm */
-size_t cose_key_len(cose_alg_t cose_alg);
+/* Get algorithm name by id. The name is written to buffer with the max length buflen. The buffer is
+ * returned. */
+const char *tsm_cose_get_alg_name(cose_alg_t id, char *buffer, size_t buflen);
+/* Returns the algorithm id of name. */
+cose_alg_t tsm_cose_get_alg_id(const char *name);
+/* Get hkdf algorithm name by id. The name is written to buffer with the max length buflen. The
+ * buffer is returned. */
+const char *tsm_cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t buflen);
+/* Retrives HMAC algorithm from HKDF. Returns TSM_OK means success, others mean failure. */
+int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg);
+/* Returns tag length belonging to cose algorithm. */
+size_t tsm_cose_tag_len(cose_alg_t cose_alg);
+/* Returns hash length belonging to cose algorithm. */
+size_t tsm_cose_hash_len(cose_alg_t cose_alg);
+/* Returns nonce length belonging to cose algorithm. */
+size_t tsm_cose_nonce_len(cose_alg_t cose_alg);
+/* Returns key length belonging to cose algorithm */
+size_t tsm_cose_key_len(cose_alg_t cose_alg);
 
 /* COSE Encrypt0 Struct */
-typedef struct cose_encrypt0_t {
+typedef struct cose_encrypt0_s {
     cose_alg_t alg;
     TSM_STR key;
     uint8_t partial_iv_data[8];
@@ -192,42 +169,40 @@ typedef struct cose_encrypt0_t {
 
 /* Initiate a new COSE Encrypt0 object. */
 void tsm_cose_encrypt0_init(cose_encrypt0_t *ptr);
-
+/* Sets algorithm to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_alg(cose_encrypt0_t *ptr, uint8_t alg);
-
+/* Sets plain text at buffer with length size to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_plaintext(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size);
-
+/* Sets cipher text at buffer with length size to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_ciphertext(cose_encrypt0_t *ptr, uint8_t *buffer, size_t size);
-
-int tsm_cose_encrypt0_get_plaintext(cose_encrypt0_t *ptr, uint8_t **buffer);
-
+/* Sets partial iv with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_partial_iv(cose_encrypt0_t *ptr, const uint8_t *partial_iv,
                                       size_t length);
-
+/* Sets key id with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_key_id(cose_encrypt0_t *ptr, const uint8_t *key_id, size_t length);
-
-/* Return length */
+/* Gets key id of COSE Encrypt0 object. Return length of key id. */
 size_t tsm_cose_encrypt0_get_key_id(cose_encrypt0_t *ptr, const uint8_t **buffer);
-
+/* Sets external aad with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_external_aad(cose_encrypt0_t *ptr, const uint8_t *external_aad,
                                         size_t length);
-
+/* Sets aad with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_aad(cose_encrypt0_t *ptr, const uint8_t *aad, size_t length);
-
-/* Return length */
+/* Gets key id context of COSE Encrypt0 object. Return length of key id context. */
 size_t tsm_cose_encrypt0_get_kid_context(cose_encrypt0_t *ptr, const uint8_t **buffer);
-
+/* Sets key id context with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_kid_context(cose_encrypt0_t *ptr, const uint8_t *kid_context,
                                        size_t length);
-
-/* Returns 1 if successfull, 0 if key is of incorrect length. */
+/* Sets key with length length to COSE Encrypt0 object. Returns TSM_OK if successfull, other error
+ * code if key is of incorrect length. */
 int tsm_cose_encrypt0_set_key(cose_encrypt0_t *ptr, const uint8_t *key, size_t length);
-
+/* Sets nonce with length length to COSE Encrypt0 object. */
 void tsm_cose_encrypt0_set_nonce(cose_encrypt0_t *ptr, const uint8_t *nonce, size_t length);
-
+/* Encrypts COSE Encrypt0 object and writes to ciphertext_buffer with the max length ciphertext_len.
+ * Returns actual length of cipher text if successful, otherwise returns a negative integer. */
 int tsm_cose_encrypt0_encrypt(cose_encrypt0_t *ptr, uint8_t *ciphertext_buffer,
                               size_t ciphertext_len);
-
+/* Decrypts COSE Encrypt0 object and writes to plaintext_buffer with the max length plaintext_len.
+ * Returns actual length of plain text if successful, otherwise returns a negative integer. */
 int tsm_cose_encrypt0_decrypt(cose_encrypt0_t *ptr, uint8_t *plaintext_buffer,
                               size_t plaintext_len);
 

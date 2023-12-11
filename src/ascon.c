@@ -24,8 +24,8 @@
 #define CRYPTO_NOOVERLAP     1
 #define ASCON_AEAD_RATE      8
 
-#define ASCON_128_KEYBYTES   16
-#define ASCON_128A_KEYBYTES  16
+#define ASCON_128_KEYBYTES    TSM_ASCON_AEAD_KEY_LEN
+#define ASCON_128A_KEYBYTES   TSM_ASCON_AEAD_KEY_LEN
 #define ASCON_128_RATE       8
 #define ASCON_128A_RATE      16
 #define ASCON_128_PA_ROUNDS  12
@@ -177,8 +177,8 @@ static inline void P6(ascon_state_t *s)
     ROUND(s, 0x4b);
 }
 
-int tsm_ascon_aead_update(void *ctx, const unsigned char *in, int inl, unsigned char *out,
-                          int *outl)
+int tsm_ascon_aead_update(void *ctx, const unsigned char *in, size_t inl, unsigned char *out,
+                          size_t *outl)
 {
     if (ctx == NULL)
         return eLOG(TSM_ERR_PASS_NULL_PARAM);
@@ -337,7 +337,7 @@ int tsm_ascon_aead_update(void *ctx, const unsigned char *in, int inl, unsigned 
     return TSM_OK;
 }
 
-int tsm_ascon_aead_final(void *ctx, unsigned char *out, int *outl)
+int tsm_ascon_aead_final(void *ctx, unsigned char *out, size_t *outl)
 {
     TSM_ASCON_AEAD_CTX *c = ctx;
 
@@ -441,14 +441,8 @@ int tsm_ascon_aead_final(void *ctx, unsigned char *out, int *outl)
     return TSM_OK;
 }
 
-void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned char *nonce,
-                          int flags)
+void *tsm_ascon_aead_ctx_new(void)
 {
-    if (key == NULL || nonce == NULL) {
-        LOGE(tsm_err2str(TSM_ERR_PASS_NULL_PARAM));
-        return NULL;
-    }
-
     TSM_ASCON_AEAD_CTX *ctx = tsm_calloc(sizeof(TSM_ASCON_AEAD_CTX));
 
     if (ctx == NULL) {
@@ -456,7 +450,18 @@ void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned c
         return NULL;
     }
 
-    ctx->mode = scheme;
+    return ctx;
+}
+
+int tsm_ascon_aead_init(void *c, int type, const unsigned char *key, const unsigned char *nonce,
+                        int flags)
+{
+    TSM_ASCON_AEAD_CTX *ctx = c;
+
+    if (ctx == NULL || key == NULL || nonce == NULL)
+        return eLOG(TSM_ERR_PASS_NULL_PARAM);
+
+    ctx->mode = type;
     ctx->flags = flags;
 
     /* load key and nonce */
@@ -476,9 +481,7 @@ void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned c
         ctx->b = ASCON_128A_PB_ROUNDS;
         ctx->s.x[0] = ASCON_128A_IV;
     } else {
-        LOGE(tsm_err2str(TSM_ERR_INVALID_ASCON_SCHEME));
-        tsm_free(ctx);
-        return NULL;
+        return eLOG(TSM_ERR_INVALID_ASCON_SCHEME);
     }
 
     ctx->s.x[1] = ctx->K[0];
@@ -491,10 +494,10 @@ void *tsm_ascon_aead_init(int scheme, const unsigned char *key, const unsigned c
     ctx->s.x[4] ^= ctx->K[1];
     printstate("init 2nd key xor", &ctx->s);
     ctx->phase = ASCON_PHASE_INIT;
-    return ctx;
+    return TSM_OK;
 }
 
-void tsm_ascon_aead_clean(void *ctx)
+void tsm_ascon_aead_ctx_free(void *ctx)
 {
     if (ctx != NULL) {
         TSM_ASCON_AEAD_CTX *c = (TSM_ASCON_AEAD_CTX *)ctx;
@@ -535,62 +538,60 @@ int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag)
     return TSM_OK;
 }
 
-int tsm_ascon_aead_oneshot(int scheme, const unsigned char *key, const unsigned char *nonce,
-                           const unsigned char *ad, int adl, const unsigned char *in, int inl,
-                           unsigned char *out, int *outl, int flags)
+int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned char *nonce,
+                           const unsigned char *ad, size_t adl, const unsigned char *in, size_t inl,
+                           unsigned char *out, size_t *outl, int flags)
 {
-    int tmplen = 0;
+    size_t tmplen = 0;
+    int ret;
     void *ctx;
 
     if (key == NULL || nonce == NULL || out == NULL || outl == NULL)
         return eLOG(TSM_ERR_PASS_NULL_PARAM);
 
-    ctx = tsm_ascon_aead_init(scheme, key, nonce, flags);
+    ctx = tsm_ascon_aead_ctx_new();
     if (ctx == NULL)
-        return TSM_FAILED;
+        return TSM_ERR_MALLOC_FAILED;
+
+    if ((ret = tsm_ascon_aead_init(ctx, type, key, nonce, flags)) != TSM_OK)
+        goto err;
 
     /* Expect tag after ciphertext */
     if (flags & TSM_CIPH_FLAG_DECRYPT) {
-        if (tsm_ascon_aead_set_tag(ctx, in + inl - TSM_ASCON_AEAD_TAG_LEN) != TSM_OK) {
-            tsm_ascon_aead_clean(ctx);
-            return TSM_FAILED;
-        }
+        if ((ret = tsm_ascon_aead_set_tag(ctx, in + inl - TSM_ASCON_AEAD_TAG_LEN)) != TSM_OK)
+            goto err;
+
         inl -= TSM_ASCON_AEAD_TAG_LEN;
     }
 
     if (ad != NULL && adl > 0) {
-        if (tsm_ascon_aead_update(ctx, ad, adl, NULL, NULL) != TSM_OK) {
-            tsm_ascon_aead_clean(ctx);
-            return TSM_FAILED;
-        }
+        if ((ret = tsm_ascon_aead_update(ctx, ad, adl, NULL, NULL)) != TSM_OK)
+            goto err;
     }
 
     if (in != NULL && inl > 0) {
-        if (tsm_ascon_aead_update(ctx, in, inl, out, &tmplen) != TSM_OK) {
-            tsm_ascon_aead_clean(ctx);
-            return TSM_FAILED;
-        }
+        if ((ret = tsm_ascon_aead_update(ctx, in, inl, out, &tmplen)) != TSM_OK)
+            goto err;
     }
 
-    if (tsm_ascon_aead_final(ctx, out + tmplen, outl) != TSM_OK) {
-        tsm_ascon_aead_clean(ctx);
-        return TSM_FAILED;
-    }
+    if ((ret = tsm_ascon_aead_final(ctx, out + tmplen, outl)) != TSM_OK)
+        goto err;
 
     *outl += tmplen;
 
     /* Append tag to ciphertext */
     if (flags & TSM_CIPH_FLAG_ENCRYPT) {
-        if (tsm_ascon_aead_get_tag(ctx, out + *outl) != TSM_OK) {
-            tsm_ascon_aead_clean(ctx);
-            return TSM_FAILED;
-        }
+        if ((ret = tsm_ascon_aead_get_tag(ctx, out + *outl)) != TSM_OK)
+            goto err;
 
         *outl += TSM_ASCON_AEAD_TAG_LEN;
     }
 
-    tsm_ascon_aead_clean(ctx);
+    tsm_ascon_aead_ctx_free(ctx);
     return TSM_OK;
+err:
+    tsm_ascon_aead_ctx_free(ctx);
+    return ret;
 }
 
 int tsm_ascon_hash_init(void *c, int type)
@@ -707,7 +708,7 @@ int tsm_ascon_hash_oneshot(int type, const unsigned char *in, size_t inl, unsign
                            size_t *outl)
 {
     int ret;
-    TSM_ASCON_HASH_CTX *ctx = tsm_ason_hash_ctx_new();
+    TSM_ASCON_HASH_CTX *ctx = tsm_ascon_hash_ctx_new();
     if (ctx == NULL)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
@@ -722,7 +723,7 @@ int tsm_ascon_hash_oneshot(int type, const unsigned char *in, size_t inl, unsign
     return TSM_OK;
 }
 
-void *tsm_ason_hash_ctx_new(void)
+void *tsm_ascon_hash_ctx_new(void)
 {
     TSM_ASCON_HASH_CTX *ctx = tsm_alloc(sizeof(TSM_ASCON_HASH_CTX));
     if (ctx == NULL) {
@@ -746,7 +747,7 @@ static TSM_HASH_METH tsm_ascon_hash = {
     .name = "ascon_hash",
     .type = TSM_ASCON_HASH,
     .hashsize = TSM_ASCON_HASH_LEN,
-    .newctx = tsm_ason_hash_ctx_new,
+    .newctx = tsm_ascon_hash_ctx_new,
     .freectx = tsm_ascon_hash_ctx_free,
     .init = tsm_ascon_hash_init,
     .update = tsm_ascon_hash_update,
@@ -757,7 +758,7 @@ static TSM_HASH_METH tsm_ascon_hasha = {
     .name = "ascon_hasha",
     .type = TSM_ASCON_HASHA,
     .hashsize = TSM_ASCON_HASH_LEN,
-    .newctx = tsm_ason_hash_ctx_new,
+    .newctx = tsm_ascon_hash_ctx_new,
     .freectx = tsm_ascon_hash_ctx_free,
     .init = tsm_ascon_hash_init,
     .update = tsm_ascon_hash_update,

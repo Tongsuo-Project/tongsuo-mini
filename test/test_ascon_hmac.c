@@ -21,7 +21,7 @@ int test_ascon_hmac(int type, const char *hex_key, const char *hex_msg, const ch
     unsigned char buf[TSM_ASCON_HMAC_LEN];
     size_t outlen;
 
-    ASSERT_OK(tsm_hmac(tsm_ascon_hash_meth(type), key, strlen(hex_key) / 2, msg,
+    ASSERT_OK(tsm_hmac_oneshot(tsm_ascon_hash_meth(type), key, strlen(hex_key) / 2, msg,
                        msg == NULL ? 0 : strlen(hex_msg) / 2, buf, &outlen));
 
     ASSERT(outlen == TSM_ASCON_HMAC_LEN);
