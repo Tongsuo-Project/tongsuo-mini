@@ -453,12 +453,12 @@ void *tsm_ascon_aead_ctx_new(void)
     return ctx;
 }
 
-int tsm_ascon_aead_init(void *c, int type, const unsigned char *key, const unsigned char *nonce,
+int tsm_ascon_aead_init(void *c, int type, const unsigned char *key, const unsigned char *iv,
                         int flags)
 {
     TSM_ASCON_AEAD_CTX *ctx = c;
 
-    if (ctx == NULL || key == NULL || nonce == NULL)
+    if (ctx == NULL || key == NULL || iv == NULL)
         return eLOG(TSM_ERR_PASS_NULL_PARAM);
 
     ctx->mode = type;
@@ -467,8 +467,8 @@ int tsm_ascon_aead_init(void *c, int type, const unsigned char *key, const unsig
     /* load key and nonce */
     ctx->K[0] = LOADBYTES(key, 8);
     ctx->K[1] = LOADBYTES(key + 8, 8);
-    ctx->N[0] = LOADBYTES(nonce, 8);
-    ctx->N[1] = LOADBYTES(nonce + 8, 8);
+    ctx->N[0] = LOADBYTES(iv, 8);
+    ctx->N[1] = LOADBYTES(iv + 8, 8);
 
     if (ctx->mode == TSM_ASCON_AEAD_128) {
         ctx->block_size = ASCON_128_RATE;
@@ -538,7 +538,7 @@ int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag)
     return TSM_OK;
 }
 
-int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned char *nonce,
+int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned char *iv,
                            const unsigned char *ad, size_t adl, const unsigned char *in, size_t inl,
                            unsigned char *out, size_t *outl, int flags)
 {
@@ -546,14 +546,14 @@ int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned ch
     int ret;
     void *ctx;
 
-    if (key == NULL || nonce == NULL || out == NULL || outl == NULL)
+    if (key == NULL || iv == NULL || out == NULL || outl == NULL)
         return eLOG(TSM_ERR_PASS_NULL_PARAM);
 
     ctx = tsm_ascon_aead_ctx_new();
     if (ctx == NULL)
         return TSM_ERR_MALLOC_FAILED;
 
-    if ((ret = tsm_ascon_aead_init(ctx, type, key, nonce, flags)) != TSM_OK)
+    if ((ret = tsm_ascon_aead_init(ctx, type, key, iv, flags)) != TSM_OK)
         goto err;
 
     /* Expect tag after ciphertext */
