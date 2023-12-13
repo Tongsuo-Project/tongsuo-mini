@@ -22,7 +22,7 @@ extern "C" {
 
 # define TSM_ASCON_AEAD_TAG_LEN   16
 # define TSM_ASCON_AEAD_KEY_LEN   16
-# define TSM_ASCON_AEAD_NONCE_LEN 16
+# define TSM_ASCON_AEAD_IV_LEN    16
 
 # define TSM_ASCON_HASH           0x1
 # define TSM_ASCON_HASHA          0x2
@@ -34,12 +34,12 @@ extern "C" {
 void *tsm_ascon_aead_ctx_new(void);
 /* Frees up the context ctx of ascon aead. */
 void tsm_ascon_aead_ctx_free(void *ctx);
-/* Initializes the context ctx with type, key, nonce and flags. type should be TSM_ASCON_AEAD_128 or
- * TSM_ASCON_AEAD_128A. The length of key and nonce should be 16 bytes. flags may be
+/* Initializes the context ctx with type, key, iv and flags. type should be TSM_ASCON_AEAD_128 or
+ * TSM_ASCON_AEAD_128A. The length of key and iv should be 16 bytes. flags may be
  * TSM_CIPH_FLAG_ENCRYPT or TSM_CIPH_FLAG_DECRYPT. If you want to encrypt data without padding,
  * flags should be TSM_CIPH_FLAG_ENCRYPT | TSM_CIPH_FLAG_NO_PAD. Returns TSM_OK for success and
  * others for failure. */
-int tsm_ascon_aead_init(void *ctx, int type, const unsigned char *key, const unsigned char *nonce,
+int tsm_ascon_aead_init(void *ctx, int type, const unsigned char *key, const unsigned char *iv,
                         int flags);
 /* Encrypts or decrypts data at in with the length inl, and retrives the result at out. The number
  * of bytes of result written will be written to the integer at outl. Returns TSM_OK for success and
@@ -57,12 +57,12 @@ int tsm_ascon_aead_set_tag(void *ctx, const unsigned char *tag);
 /* Get tag after ascon AEAD encryption. */
 int tsm_ascon_aead_get_tag(void *ctx, unsigned char *tag);
 /* Encrypts or decrypts data at in with length inl, and retrives the result at out. The number of
- * bytes of result written will be written to the integer at outl. The length of key and nonce
+ * bytes of result written will be written to the integer at outl. The length of key and iv
  * should be 16 bytes. type should be TSM_ASCON_AEAD_128 or TSM_ASCON_AEAD_128A. flags may be
  * TSM_CIPH_FLAG_ENCRYPT or TSM_CIPH_FLAG_DECRYPT. If you want to encrypt data without padding,
  * flags should be TSM_CIPH_FLAG_ENCRYPT | TSM_CIPH_FLAG_NO_PAD. Returns TSM_OK for success and
  * others for failure. */
-int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned char *nonce,
+int tsm_ascon_aead_oneshot(int type, const unsigned char *key, const unsigned char *iv,
                            const unsigned char *ad, size_t adl, const unsigned char *in, size_t inl,
                            unsigned char *out, size_t *outl, int flags);
 /* Create ctx of ascon hash. */

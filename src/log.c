@@ -10,8 +10,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>
+#include "internal/log.h"
 
 #define TSM_MAX_LOG_STRLEN 2048
+
+static int default_log_level = TSM_LOG_ERROR;
 
 const char *log_level[] = {
     "DEBUG",
@@ -25,6 +28,9 @@ void tsm_log_impl(const char *file, int line, int level, const char *fmt, ...)
     char *p, *end;
     va_list args;
     char msg[TSM_MAX_LOG_STRLEN];
+
+    if (level < default_log_level)
+        return;
 
     p = msg;
     end = p + sizeof(msg) - 1;
