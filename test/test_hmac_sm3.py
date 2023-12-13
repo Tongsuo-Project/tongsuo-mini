@@ -5,15 +5,16 @@
 
 import tf
 import pytest
+import binascii
 
 
 @pytest.mark.parametrize(
     "kat_file",
     [
-        "test_sm3_data/sm3.txt",
+        "test_hmac_data/hmac_sm3.txt",
     ],
 )
-def test_sm3(kat_file, subtests):
+def test_hmac_sm3(kat_file, subtests):
     with open(kat_file) as f:
         tb = {}
 
@@ -27,11 +28,19 @@ def test_sm3(kat_file, subtests):
             name, value = line.partition("=")[::2]
             tb[name.strip()] = value.strip()
 
-            if "Count" in tb and "Input" in tb and "Output" in tb:
+            if "Count" in tb and "Input" in tb and "Key" in tb and "Output" in tb:
+                if tb["Input"][0] == '"':
+                    tb["Input"] = binascii.hexlify(
+                        tb["Input"].strip('"').encode()
+                    ).decode()
+
+                if tb["Key"][0] == '"':
+                    tb["Key"] = binascii.hexlify(tb["Key"].strip('"').encode()).decode()
+
                 with subtests.test(i=tb["Count"]):
                     tf.ok(
-                        "test_sm3 -input {} -output {}".format(
-                            tb["Input"], tb["Output"]
+                        "test_hmac_sm3 -key {} -msg {} -tag {}".format(
+                            tb["Key"], tb["Input"], tb["Output"]
                         )
                     )
 

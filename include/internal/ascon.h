@@ -42,7 +42,7 @@ typedef struct tsm_ascon_aead_ctx_st {
 
 typedef struct tsm_ascon_hash_ctx_st {
     ascon_state_t s;
-    uint8_t mode;
+    uint8_t alg;
     uint8_t buf_len;
     unsigned char buf[8]; /* saved partial block */
 } TSM_ASCON_HASH_CTX;

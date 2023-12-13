@@ -13,7 +13,7 @@
 #include "test.h"
 #include <string.h>
 
-int test_ascon_hmac(int type, const char *hex_key, const char *hex_msg, const char *hex_tag)
+int test_ascon_hmac(int hash, const char *hex_key, const char *hex_msg, const char *hex_tag)
 {
     unsigned char *key = tsm_hex2buf(hex_key);
     unsigned char *msg = tsm_hex2buf(hex_msg);
@@ -21,8 +21,8 @@ int test_ascon_hmac(int type, const char *hex_key, const char *hex_msg, const ch
     unsigned char buf[TSM_ASCON_HMAC_LEN];
     size_t outlen;
 
-    ASSERT_OK(tsm_hmac_oneshot(tsm_ascon_hash_meth(type), key, strlen(hex_key) / 2, msg,
-                       msg == NULL ? 0 : strlen(hex_msg) / 2, buf, &outlen));
+    ASSERT_OK(tsm_hmac_oneshot(hash, key, strlen(hex_key) / 2, msg,
+                               msg == NULL ? 0 : strlen(hex_msg) / 2, buf, &outlen));
 
     ASSERT(outlen == TSM_ASCON_HMAC_LEN);
     ASSERT(memcmp(buf, tag, outlen) == 0);
@@ -40,7 +40,7 @@ int test_ascon_hmac(int type, const char *hex_key, const char *hex_msg, const ch
 int main(int argc, char **argv)
 {
     int i;
-    int type;
+    int hash;
     const char *hex_key = NULL;
     const char *hex_msg = NULL;
     const char *hex_tag = NULL;
@@ -68,13 +68,13 @@ int main(int argc, char **argv)
     }
 
     if (strcmp(algo, "ascon-hmac") == 0)
-        type = TSM_ASCON_HASH;
+        hash = TSM_HASH_ASCON_HASH;
     else if (strcmp(algo, "ascon-hmaca") == 0)
-        type = TSM_ASCON_HASHA;
+        hash = TSM_HASH_ASCON_HASHA;
     else
         return 1;
 
-    TEST_EX(test_ascon_hmac, type, hex_key, hex_msg, hex_tag);
+    TEST_EX(test_ascon_hmac, hash, hex_key, hex_msg, hex_tag);
 
     return 0;
 }

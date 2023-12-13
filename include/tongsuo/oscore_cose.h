@@ -113,16 +113,6 @@ typedef enum {
     COSE_ALGORITHM_HMAC_ASCON_HMACA = 100,
 } cose_alg_t;
 
-/* cose HMAC specific algorithms */
-typedef enum {
-    COSE_HMAC_ALG_HMAC256_64 = 4, /* truncated to 64 bits */
-    COSE_HMAC_ALG_HMAC256_256 = 5,
-    COSE_HMAC_ALG_HMAC384_384 = 6,
-    COSE_HMAC_ALG_HMAC512_512 = 7,
-    COSE_HMAC_ALG_HMAC_ASCON_HMAC = 100,
-    COSE_HMAC_ALG_HMAC_ASCON_HMACA = 101,
-} cose_hmac_alg_t;
-
 /* cose HKDF specific algorithms */
 typedef enum {
     COSE_HKDF_ALG_HKDF_ASCON_HASHA = -101,
@@ -140,7 +130,7 @@ cose_alg_t tsm_cose_get_alg_id(const char *name);
  * buffer is returned. */
 const char *tsm_cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t buflen);
 /* Retrives HMAC algorithm from HKDF. Returns TSM_OK means success, others mean failure. */
-int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg);
+int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, int *hmac_alg);
 /* Returns tag length belonging to cose algorithm. */
 size_t tsm_cose_tag_len(cose_alg_t cose_alg);
 /* Returns hash length belonging to cose algorithm. */

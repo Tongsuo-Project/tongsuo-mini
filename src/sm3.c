@@ -71,7 +71,7 @@ void *tsm_sm3_ctx_new(void)
 {
     TSM_SM3_CTX *c = NULL;
 
-    c = tsm_calloc(sizeof(*c));
+    c = tsm_alloc(sizeof(*c));
     if (c == NULL) {
         LOGERR(TSM_ERR_MALLOC_FAILED);
         return NULL;
@@ -95,6 +95,8 @@ int tsm_sm3_init(void *ctx)
 {
     TSM_SM3_CTX *c = ctx;
 
+    tsm_memzero(c, sizeof(*c));
+
     c->A = SM3_A;
     c->B = SM3_B;
     c->C = SM3_C;
@@ -107,7 +109,7 @@ int tsm_sm3_init(void *ctx)
     return TSM_OK;
 }
 
-void tsm_sm3_transform(void *c, const void *p, size_t num)
+void tsm_sm3_transform(void *c, const unsigned char *p, size_t num)
 {
     TSM_SM3_CTX *ctx = c;
     const unsigned char *data = p;
@@ -276,10 +278,9 @@ void tsm_sm3_transform(void *c, const void *p, size_t num)
     }
 }
 
-int tsm_sm3_update(void *ctx, const void *data_, size_t len)
+int tsm_sm3_update(void *ctx, const unsigned char *data, size_t len)
 {
     TSM_SM3_CTX *c = ctx;
-    const unsigned char *data = data_;
     unsigned char *p;
     unsigned int l;
     size_t n;
@@ -329,14 +330,14 @@ int tsm_sm3_update(void *ctx, const void *data_, size_t len)
     return TSM_OK;
 }
 
-int tsm_sm3_final(void *ctx, unsigned char *md)
+int tsm_sm3_final(void *ctx, unsigned char *md, size_t *mdlen)
 {
     TSM_SM3_CTX *c = ctx;
     unsigned char *p = (unsigned char *)c->data;
     size_t n = c->num;
     unsigned long ll;
 
-    p[n] = 0x80;                /* there is always room for one */
+    p[n] = 0x80;
     n++;
 
     if (n > (TSM_SM3_CBLOCK - 8)) {
@@ -371,10 +372,13 @@ int tsm_sm3_final(void *ctx, unsigned char *md)
     ll=c->H;
     (void)HOST_l2c(ll, md);
 
+    if (mdlen)
+        *mdlen = TSM_SM3_DIGEST_LEN;
+
     return TSM_OK;
 }
 
-int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md)
+int tsm_sm3_oneshot(const unsigned char *data, size_t len, unsigned char *md)
 {
     int ret;
     TSM_SM3_CTX *ctx = NULL;
@@ -384,7 +388,7 @@ int tsm_sm3_oneshot(const void *data, size_t len, unsigned char *md)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
     if ((ret = tsm_sm3_init(ctx)) != TSM_OK || (ret = tsm_sm3_update(ctx, data, len)) != TSM_OK
-        || (ret = tsm_sm3_final(ctx, md)) != TSM_OK) {
+        || (ret = tsm_sm3_final(ctx, md, NULL)) != TSM_OK) {
         tsm_sm3_ctx_free(ctx);
         return ret;
     }

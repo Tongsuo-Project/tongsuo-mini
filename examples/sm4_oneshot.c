@@ -15,33 +15,27 @@
 int main(void)
 {
     int ret = 1;
-    void *ctx = NULL;
     const char *plaintext = "hello world";
     unsigned char *key = tsm_hex2buf("0123456789abcdef0123456789abcdef");
     unsigned char *iv = tsm_hex2buf("0123456789abcdef0123456789abcdef");
     unsigned char ciphertext[1024];
-    size_t outl, tmplen;
+    size_t outl;
 
     if (key == NULL || iv == NULL) {
         goto err;
     }
 
-    ctx = tsm_sm4_ctx_new();
-    if (ctx == NULL) {
+    if (tsm_sm4_oneshot(TSM_CIPH_MODE_CBC,
+                        key,
+                        iv,
+                        (const unsigned char *)plaintext,
+                        strlen(plaintext),
+                        ciphertext,
+                        &outl,
+                        TSM_CIPH_FLAG_ENCRYPT)
+        != TSM_OK) {
         goto err;
     }
-
-    if (tsm_sm4_init(ctx, TSM_CIPH_MODE_CBC, key, iv, TSM_CIPH_FLAG_ENCRYPT) != TSM_OK
-        || tsm_sm4_update(ctx,
-                          (const unsigned char *)plaintext,
-                          strlen(plaintext),
-                          ciphertext,
-                          &outl)
-               != TSM_OK
-        || tsm_sm4_final(ctx, ciphertext + outl, &tmplen) != TSM_OK) {
-        goto err;
-    }
-    outl += tmplen;
 
     printf("SM4_CBC_Encrypt(%s)=", plaintext);
 
@@ -53,7 +47,6 @@ int main(void)
 
     ret = 0;
 err:
-    tsm_sm4_ctx_free(ctx);
     tsm_free(key);
     tsm_free(iv);
     return ret;

@@ -8,6 +8,7 @@
  */
 
 #include <string.h>
+#include <tongsuo/minisuo.h>
 #include <tongsuo/ascon.h>
 #include <tongsuo/mem.h>
 #include "test.h"
@@ -25,9 +26,9 @@ int test_ascon_hash(void)
     size_t outlen;
 
     if (strcmp(schemestr, "hash") == 0)
-        scheme = TSM_ASCON_HASH;
+        scheme = TSM_HASH_ASCON_HASH;
     else
-        scheme = TSM_ASCON_HASHA;
+        scheme = TSM_HASH_ASCON_HASHA;
 
     ASSERT_OK(
         tsm_ascon_hash_oneshot(scheme, msg, msg == NULL ? 0 : strlen(hex_msg) / 2, buf, &outlen));

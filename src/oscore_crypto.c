@@ -16,21 +16,21 @@
 #include <string.h>
 #include <stdio.h>
 
-static int oscore_hmac_hash(cose_hmac_alg_t hmac_alg, TSM_STR *key, TSM_STR *data, TSM_STR **hmac)
+static int oscore_hmac_hash(int hmac_alg, TSM_STR *key, TSM_STR *data, TSM_STR **hmac)
 {
     int ret;
     unsigned char *out = NULL;
     size_t outl;
-    TSM_HASH_METH *meth = tsm_ascon_hash_meth(hmac_alg);
+    TSM_HASH_METH *meth = tsm_get_hash_meth(hmac_alg);
 
     if (meth == NULL)
-        return eLOG(TSM_ERR_INVALID_ALGORITHM);
+        return eLOG(TSM_ERR_INVALID_HASH_ALGORITHM);
 
     out = tsm_alloc(meth->hashsize);
     if (out == NULL)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
-    if ((ret = tsm_hmac_oneshot(meth, key->s, key->length, data->s, data->length, out, &outl))
+    if ((ret = tsm_hmac_oneshot(hmac_alg, key->s, key->length, data->s, data->length, out, &outl))
         != TSM_OK) {
         tsm_free(out);
         LOGE("oscore_hmac_hash: Failed hmac\n");
@@ -46,7 +46,7 @@ static int oscore_hmac_hash(cose_hmac_alg_t hmac_alg, TSM_STR *key, TSM_STR *dat
 static int
 oscore_hkdf_extract(cose_hkdf_alg_t hkdf_alg, TSM_STR *salt, TSM_STR *ikm, TSM_STR **hkdf_extract)
 {
-    cose_hmac_alg_t hmac_alg;
+    int hmac_alg;
     int ret;
 
     assert(ikm);
@@ -80,7 +80,7 @@ static int oscore_hkdf_expand(cose_hkdf_alg_t hkdf_alg,
     size_t i;
     TSM_STR data;
     TSM_STR *hkdf = NULL;
-    cose_hmac_alg_t hmac_alg;
+    int hmac_alg;
 
     if ((ret = tsm_cose_get_hmac_alg_for_hkdf(hkdf_alg, &hmac_alg)) != TSM_OK)
         goto fail;

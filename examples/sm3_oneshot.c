@@ -8,34 +8,21 @@
  */
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 #include <tongsuo/minisuo.h>
-#include <tongsuo/ascon.h>
+#include <tongsuo/sm3.h>
 
 int main(void)
 {
-    void *ctx = NULL;
     const char *data = "hello world";
-    unsigned char md[TSM_ASCON_HASH_LEN];
-    size_t outl;
+    unsigned char md[TSM_SM3_DIGEST_LEN];
 
-    ctx = tsm_ascon_hash_ctx_new();
-    if (ctx == NULL) {
+    if (tsm_sm3_oneshot((const unsigned char *)data, strlen(data), md) != TSM_OK) {
         return 1;
     }
 
-    if (tsm_ascon_hash_init(ctx) != TSM_OK
-        || tsm_ascon_hash_update(ctx, (const unsigned char *)data, strlen(data)) != TSM_OK
-        || tsm_ascon_hash_final(ctx, md, &outl) != TSM_OK) {
-        tsm_ascon_hash_ctx_free(ctx);
-        return 1;
-    }
+    printf("SM3(%s)=", data);
 
-    tsm_ascon_hash_ctx_free(ctx);
-
-    printf("ASCON_HASH(%s)=", data);
-
-    for (size_t i = 0; i < outl; i++) {
+    for (int i = 0; i < TSM_SM3_DIGEST_LEN; i++) {
         printf("%02x", md[i]);
     }
 

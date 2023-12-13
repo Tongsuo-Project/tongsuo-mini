@@ -200,7 +200,7 @@ static int sm3_handler(int argc, char **argv)
             return 1;
         }
         /* calculate SM3 hash, take argv[3] as the input */
-        if (tsm_sm3_oneshot(argv[3], strlen(argv[3]), md) != TSM_OK) {
+        if (tsm_sm3_oneshot((const unsigned char *)argv[3], strlen(argv[3]), md) != TSM_OK) {
             fprintf(stderr, "calculation error\n");
             return 1;
         }
@@ -461,16 +461,17 @@ static int ascon_hash_handler(int argc, char **argv)
             return 1;
         }
         if (strcasecmp(argv[3], "HASH") == 0) {
-            scheme = TSM_ASCON_HASH;
+            scheme = TSM_HASH_ASCON_HASH;
         } else if (strcasecmp(argv[3], "HASHA") == 0) {
-            scheme = TSM_ASCON_HASHA;
+            scheme = TSM_HASH_ASCON_HASHA;
         } else {
             fprintf(stderr, "wrong ASCON hash scheme\n");
             return 1;
         }
         /* calculate ASCON hash, take argv[5] as the input */
-        if (tsm_ascon_hash_oneshot(scheme, (const unsigned char *)argv[5], strlen(argv[5]),
-                                   md, &md_len) != TSM_OK) {
+        if (tsm_ascon_hash_oneshot(scheme, (const unsigned char *)argv[5], strlen(argv[5]), md,
+                                   &md_len)
+            != TSM_OK) {
             fprintf(stderr, "calculation error\n");
             return 1;
         }
