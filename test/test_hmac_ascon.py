@@ -10,8 +10,8 @@ import pytest
 @pytest.mark.parametrize(
     "algo, kat_file",
     [
-        ("ascon-hmac", "test_ascon_data/ascon_hmac.txt"),
-        ("ascon-hmaca", "test_ascon_data/ascon_hmaca.txt"),
+        ("ascon-hmac", "test_hmac_data/ascon_hmac.txt"),
+        ("ascon-hmaca", "test_hmac_data/ascon_hmaca.txt"),
     ],
 )
 def test_ascon_hmac(algo, kat_file, subtests):
@@ -35,4 +35,4 @@ def test_ascon_hmac(algo, kat_file, subtests):
                             algo, tb["Key"], tb["Msg"], tb["Tag"]
                         )
                     )
-                    tb.clear()
+                tb.clear()

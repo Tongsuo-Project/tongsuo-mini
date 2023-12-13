@@ -15,13 +15,15 @@
 
 typedef struct {
     const char *name;
-    uint8_t type;
+    uint8_t alg;
     uint8_t hashsize;
+    uint8_t blocksize;
     void *(*newctx)(void);
     void (*freectx)(void *ctx);
-    int (*init)(void *ctx, int type);
+    int (*init)(void *ctx);
     int (*update)(void *ctx, const unsigned char *data, size_t len);
     int (*final)(void *ctx, unsigned char *out, size_t *outl);
 } TSM_HASH_METH;
 
+void *tsm_get_hash_meth(int alg);
 #endif

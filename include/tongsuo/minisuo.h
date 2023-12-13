@@ -48,8 +48,15 @@ extern "C" {
 # define TSM_MAX_IV_LENGTH     16
 # define TSM_MAX_BLOCK_LENGTH  32
 
-/* Return 0 (i.e. TSM_OK) means success, others mean failure whether it is > 0 or < 0.
- * Try to return specific error code if possible. */
+/* Supported hash algorithms. */
+enum {
+    TSM_HASH_SM3 = 1,
+    TSM_HASH_ASCON_HASH,
+    TSM_HASH_ASCON_HASHA,
+};
+
+/* All error codes are defined here.
+ * Most of APIs return TSM_OK on success, specific error code on failure. */
 enum {
     TSM_FAILED = -1,
     TSM_OK = 0,
@@ -72,7 +79,7 @@ enum {
     TSM_ERR_INVALID_ASCON_SCHEME,
     TSM_ERR_AEAD_VERIFY_FAILED,
     TSM_ERR_INVALID_HASH_SIZE,
-    TSM_ERR_INVALID_ALGORITHM,
+    TSM_ERR_INVALID_HASH_ALGORITHM,
     TSM_ERR_NOT_FOUND,
     TSM_ERR_INVALID_SEQ,
     TSM_ERR_REPLAYED_SEQ,

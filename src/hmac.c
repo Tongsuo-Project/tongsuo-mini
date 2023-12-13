@@ -16,23 +16,16 @@
 
 #define HMAC_IPAD       0x36
 #define HMAC_OPAD       0x5C
-#define HMAC_BLOCK_SIZE 64
+
+/* The current largest case is for SHA3-224 */
+#define HMAC_MAX_MD_CBLOCK_SIZE 144
 
 typedef struct {
     void *algctx;
     TSM_HASH_METH *meth;
-    const unsigned char *key;
+    unsigned char *key;
     size_t keylen;
 } TSM_HMAC_CTX;
-
-static void hmac_xor_pad(unsigned char *out, const unsigned char *in, size_t size,
-                         unsigned char pad)
-{
-    while (size > 0) {
-        *out++ = *in++ ^ pad;
-        --size;
-    }
-}
 
 void *tsm_hmac_ctx_new(void)
 {
@@ -44,78 +37,28 @@ void tsm_hmac_ctx_free(void *ctx)
     if (ctx == NULL)
         return;
 
-    tsm_free(ctx);
-}
-
-static int hmac_absorb_key(TSM_HMAC_CTX *ctx, const unsigned char *key, size_t keylen,
-                           unsigned char pad)
-{
-    unsigned char *temp = NULL;
-    size_t temp_len;
-    int ret = TSM_FAILED;
-    size_t posn, len;
-
-    temp = tsm_alloc(ctx->meth->hashsize);
-    if (temp == NULL)
-        return eLOG(TSM_ERR_MALLOC_FAILED);
-
-    /* Break the key up into smaller chunks and XOR it with "pad".
-     * We do it this way to avoid having a large buffer on the
-     * stack of size HMAC_BLOCK_SIZE. */
-    if (keylen <= HMAC_BLOCK_SIZE) {
-        posn = 0;
-        while (posn < keylen) {
-            len = keylen - posn;
-            if (len > ctx->meth->hashsize)
-                len = ctx->meth->hashsize;
-            hmac_xor_pad(temp, key + posn, len, pad);
-            if ((ret = ctx->meth->update(ctx->algctx, temp, len)) != TSM_OK)
-                goto err;
-            posn += len;
-        }
-    } else {
-        /* Hash long keys down first and then absorb */
-        if ((ret = ctx->meth->update(ctx->algctx, key, keylen)) != TSM_OK
-            || (ret = ctx->meth->final(ctx->algctx, temp, &temp_len)) != TSM_OK)
-            goto err;
-
-        if (temp_len != ctx->meth->hashsize) {
-            ret = TSM_ERR_INVALID_HASH_SIZE;
-            goto err;
-        }
-
-        if ((ret = ctx->meth->init(ctx->algctx, ctx->meth->type)) != TSM_OK)
-            goto err;
-        hmac_xor_pad(temp, temp, temp_len, pad);
-        if ((ret = ctx->meth->update(ctx->algctx, temp, temp_len)) != TSM_OK)
-            goto err;
-        posn = temp_len;
+    TSM_HMAC_CTX *c = (TSM_HMAC_CTX *)ctx;
+    if (c->algctx != NULL) {
+        c->meth->freectx(c->algctx);
+        c->algctx = NULL;
     }
 
-    /* Pad the rest of the block with the padding value */
-    memset(temp, pad, ctx->meth->hashsize);
-    while (posn < HMAC_BLOCK_SIZE) {
-        len = HMAC_BLOCK_SIZE - posn;
-        if (len > ctx->meth->hashsize)
-            len = ctx->meth->hashsize;
-        if ((ret = ctx->meth->update(ctx->algctx, temp, len)) != TSM_OK)
-            goto err;
-        posn += len;
-    }
-
-    ret = TSM_OK;
-err:
-    tsm_free(temp);
-    return ret;
+    tsm_free(c->key);
+    tsm_free(c);
 }
 
-int tsm_hmac_init(void *ctx, const unsigned char *key, size_t keylen, void *meth)
+int tsm_hmac_init(void *ctx, const unsigned char *key, size_t keylen, int hash_alg)
 {
     TSM_HMAC_CTX *c = (TSM_HMAC_CTX *)ctx;
-    int ret;
+    void *meth = tsm_get_hash_meth(hash_alg);
+    unsigned char *temp = NULL;
+    unsigned char pad[HMAC_MAX_MD_CBLOCK_SIZE];
+    size_t temp_len;
+    int ret, i;
 
-    c->key = key;
-    c->keylen = keylen;
+    if (meth == NULL)
+        return eLOG(TSM_ERR_INVALID_HASH_ALGORITHM);
+
     c->meth = meth;
 
     if (c->algctx == NULL) {
@@ -124,11 +67,43 @@ int tsm_hmac_init(void *ctx, const unsigned char *key, size_t keylen, void *meth
             return eLOG(TSM_ERR_MALLOC_FAILED);
     }
 
-    if ((ret = c->meth->init(c->algctx, c->meth->type)) != TSM_OK
-        || (ret = hmac_absorb_key(c, key, keylen, HMAC_IPAD)) != TSM_OK)
-        return ret;
+    temp = tsm_alloc(c->meth->blocksize);
+    if (temp == NULL)
+        return eLOG(TSM_ERR_MALLOC_FAILED);
 
-    return TSM_OK;
+    if (keylen > c->meth->blocksize) {
+        if (c->meth->blocksize < c->meth->hashsize) {
+            ret = TSM_ERR_INVALID_HASH_SIZE;
+            goto err;
+        }
+
+        if ((ret = c->meth->init(c->algctx)) != TSM_OK
+            || (ret = c->meth->update(c->algctx, key, keylen)) != TSM_OK
+            || (ret = c->meth->final(c->algctx, temp, &temp_len)) != TSM_OK)
+            goto err;
+    } else {
+        memcpy(temp, key, keylen);
+        temp_len = keylen;
+    }
+
+    c->key = temp;
+    c->keylen = temp_len;
+    temp = NULL;
+
+    if (c->keylen < c->meth->blocksize)
+        memset(c->key + c->keylen, 0, c->meth->blocksize - c->keylen);
+
+    for (i = 0; i < c->meth->blocksize; i++)
+        pad[i] = c->key[i] ^ HMAC_IPAD;
+
+    if ((ret = c->meth->init(c->algctx)) != TSM_OK
+        || (ret = c->meth->update(c->algctx, pad, c->meth->blocksize)) != TSM_OK)
+        goto err;
+
+    ret = TSM_OK;
+err:
+    tsm_free(temp);
+    return ret;
 }
 
 int tsm_hmac_update(void *ctx, const unsigned char *in, size_t inlen)
@@ -146,28 +121,34 @@ int tsm_hmac_final(void *ctx, unsigned char *out, size_t *outl)
 {
     TSM_HMAC_CTX *c = (TSM_HMAC_CTX *)ctx;
     unsigned char *temp = NULL;
+    unsigned char pad[HMAC_MAX_MD_CBLOCK_SIZE];
     size_t temp_len;
-    int ret;
+    int ret, i;
 
     temp = tsm_alloc(c->meth->hashsize);
     if (temp == NULL)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
-    if ((ret = c->meth->final(c->algctx, temp, &temp_len)) != TSM_OK
-        || temp_len != c->meth->hashsize
-        || (ret = c->meth->init(c->algctx, c->meth->type)) != TSM_OK
-        || (ret = hmac_absorb_key(c, c->key, c->keylen, HMAC_OPAD)) != TSM_OK
+    if ((ret = c->meth->final(c->algctx, temp, &temp_len)) != TSM_OK)
+        goto err;
+
+    for (i = 0; i < c->meth->blocksize; i++)
+        pad[i] = c->key[i] ^ HMAC_OPAD;
+
+    if ((ret = c->meth->init(c->algctx) != TSM_OK)
+        || (ret = c->meth->update(c->algctx, pad, c->meth->blocksize)) != TSM_OK
         || (ret = c->meth->update(c->algctx, temp, temp_len)) != TSM_OK
         || (ret = c->meth->final(c->algctx, out, outl)) != TSM_OK) {
-        tsm_free(temp);
-        return ret;
+        goto err;
     }
 
+    ret = TSM_OK;
+err:
     tsm_free(temp);
-    return TSM_OK;
+    return ret;
 }
 
-int tsm_hmac_oneshot(void *meth, const unsigned char *key, size_t keylen, const unsigned char *in,
+int tsm_hmac_oneshot(int hash_alg, const unsigned char *key, size_t keylen, const unsigned char *in,
                      size_t inlen, unsigned char *out, size_t *outl)
 {
     TSM_HMAC_CTX *ctx;
@@ -177,7 +158,7 @@ int tsm_hmac_oneshot(void *meth, const unsigned char *key, size_t keylen, const 
     if (ctx == NULL)
         return eLOG(TSM_ERR_MALLOC_FAILED);
 
-    if ((ret = tsm_hmac_init(ctx, key, keylen, meth)) != TSM_OK
+    if ((ret = tsm_hmac_init(ctx, key, keylen, hash_alg)) != TSM_OK
         || (ret = tsm_hmac_update(ctx, in, inlen)) != TSM_OK
         || (ret = tsm_hmac_final(ctx, out, outl)) != TSM_OK) {
         tsm_hmac_ctx_free(ctx);

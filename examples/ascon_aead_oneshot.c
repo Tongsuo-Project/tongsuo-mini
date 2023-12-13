@@ -16,39 +16,28 @@
 int main(void)
 {
     int ret = 1;
-    void *ctx = NULL;
     const char *plaintext = "hello world";
     const char *ad = "0123456789abcdef";
     unsigned char *key = tsm_hex2buf("0123456789abcdef0123456789abcdef");
     unsigned char *iv = tsm_hex2buf("0123456789abcdef0123456789abcdef");
     unsigned char out[1024];
-    unsigned char tag[TSM_ASCON_AEAD_TAG_LEN];
-    size_t outl, tmplen;
+    size_t outl;
 
     if (key == NULL || iv == NULL) {
         goto err;
     }
 
-    ctx = tsm_ascon_aead_ctx_new();
-    if (ctx == NULL) {
-        goto err;
-    }
-
-    if (tsm_ascon_aead_init(ctx, TSM_ASCON_AEAD_128, key, iv, TSM_CIPH_FLAG_ENCRYPT) != TSM_OK
-        || tsm_ascon_aead_update(ctx, (const unsigned char *)ad, strlen(ad), NULL, NULL) != TSM_OK
-        || tsm_ascon_aead_update(ctx,
-                                 (const unsigned char *)plaintext,
-                                 strlen(plaintext),
-                                 out,
-                                 &outl)
-               != TSM_OK
-        || tsm_ascon_aead_final(ctx, out + outl, &tmplen) != TSM_OK) {
-        goto err;
-    }
-
-    outl += tmplen;
-
-    if (tsm_ascon_aead_get_tag(ctx, tag) != TSM_OK) {
+    if (tsm_ascon_aead_oneshot(TSM_ASCON_AEAD_128,
+                               key,
+                               iv,
+                               (const unsigned char *)ad,
+                               strlen(ad),
+                               (const unsigned char *)plaintext,
+                               strlen(plaintext),
+                               out,
+                               &outl,
+                               TSM_CIPH_FLAG_ENCRYPT)
+        != TSM_OK) {
         goto err;
     }
 
@@ -58,15 +47,10 @@ int main(void)
         printf("%02x", out[i]);
     }
 
-    for (size_t i = 0; i < TSM_ASCON_AEAD_TAG_LEN; i++) {
-        printf("%02x", tag[i]);
-    }
-
     printf("\n");
 
     ret = 0;
 err:
-    tsm_ascon_aead_ctx_free(ctx);
     tsm_free(key);
     tsm_free(iv);
     return ret;

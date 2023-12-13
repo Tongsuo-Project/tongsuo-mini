@@ -26,6 +26,7 @@ include_directories(include)
 set(libsrc
     src/error.c
     src/mem.c
+    src/meth.c
     src/pool.c
     src/version.c
 )
@@ -36,6 +37,7 @@ OPTION(WITH_ASCON "Build with ASCON module" OFF)
 OPTION(WITH_ASN1 "Build with asn1 module" OFF)
 OPTION(WITH_DEBUG "Enable debug" OFF)
 OPTION(WITH_ERRSTR "Build with error string" OFF)
+OPTION(WITH_EXAMPLE "Build example program" OFF)
 OPTION(WITH_HMAC "Build with HMAC module" OFF)
 OPTION(WITH_LOG "Build with log module" OFF)
 OPTION(WITH_OSCORE "Build with OSCORE module" OFF)
@@ -48,6 +50,7 @@ if(WITH_ALL)
     set(WITH_ASN1 ON)
     set(WITH_DEBUG ON)
     set(WITH_ERRSTR ON)
+    set(WITH_EXAMPLE ON)
     set(WITH_HMAC ON)
     set(WITH_LOG ON)
     set(WITH_OSCORE ON)
@@ -148,15 +151,25 @@ endif()
 if(WITH_HMAC)
     list(APPEND libsrc src/hmac.c)
 
-    if(WITH_ASCON)
-        add_executable(test_ascon_hmac test/test_ascon_hmac.c)
-        target_include_directories(test_ascon_hmac PUBLIC test)
-        target_link_libraries(test_ascon_hmac LINK_PUBLIC tongsuo-mini)
-        add_test(NAME test_ascon_hmac
-            COMMAND python3 -m pytest test_ascon_hmac.py
+    if(WITH_SM3)
+        add_executable(test_hmac_sm3 test/test_hmac_sm3.c)
+        target_include_directories(test_hmac_sm3 PUBLIC test)
+        target_link_libraries(test_hmac_sm3 LINK_PUBLIC tongsuo-mini)
+        add_test(NAME test_hmac_sm3
+            COMMAND python3 -m pytest test_hmac_sm3.py
             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
         )
-    endif()
+    endif(WITH_SM3)
+
+    if(WITH_ASCON)
+        add_executable(test_hmac_ascon test/test_hmac_ascon.c)
+        target_include_directories(test_hmac_ascon PUBLIC test)
+        target_link_libraries(test_hmac_ascon LINK_PUBLIC tongsuo-mini)
+        add_test(NAME test_hmac_ascon
+            COMMAND python3 -m pytest test_hmac_ascon.py
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/test
+        )
+    endif(WITH_ASCON)
 endif()
 
 add_library(tongsuo-mini-obj OBJECT ${libsrc})
@@ -174,6 +187,80 @@ if(WITH_PERF)
     target_link_libraries(minisuo-perf LINK_PUBLIC tongsuo-mini)
 endif()
 
+if(WITH_EXAMPLE)
+    if(WITH_SM3)
+        add_executable(sm3_demo examples/sm3_demo.c)
+        target_link_libraries(sm3_demo LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET sm3_demo
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+
+        add_executable(sm3_oneshot examples/sm3_oneshot.c)
+        target_link_libraries(sm3_oneshot LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET sm3_oneshot
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+    endif(WITH_SM3)
+
+    if(WITH_SM4)
+        add_executable(sm4_cbc_enc examples/sm4_cbc_enc.c)
+        target_link_libraries(sm4_cbc_enc LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET sm4_cbc_enc
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+
+        add_executable(sm4_oneshot examples/sm4_oneshot.c)
+        target_link_libraries(sm4_oneshot LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET sm4_oneshot
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+    endif(WITH_SM4)
+
+    if(WITH_ASCON)
+        add_executable(ascon_aead_enc examples/ascon_aead_enc.c)
+        target_link_libraries(ascon_aead_enc LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET ascon_aead_enc
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+
+        add_executable(ascon_aead_oneshot examples/ascon_aead_oneshot.c)
+        target_link_libraries(ascon_aead_oneshot LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET ascon_aead_oneshot
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+
+        add_executable(ascon_hash examples/ascon_hash.c)
+        target_link_libraries(ascon_hash LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET ascon_hash
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+
+        add_executable(ascon_hash_oneshot examples/ascon_hash_oneshot.c)
+        target_link_libraries(ascon_hash_oneshot LINK_PUBLIC tongsuo-mini)
+        set_property(TARGET ascon_hash_oneshot
+            PROPERTY RUNTIME_OUTPUT_DIRECTORY
+            ${CMAKE_CURRENT_BINARY_DIR}/examples)
+    endif(WITH_ASCON)
+
+    if(WITH_HMAC)
+        if(WITH_ASCON)
+            add_executable(hmac_ascon examples/hmac_ascon.c)
+            target_link_libraries(hmac_ascon LINK_PUBLIC tongsuo-mini)
+            set_property(TARGET hmac_ascon
+                PROPERTY RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/examples)
+        endif(WITH_ASCON)
+
+        if(WITH_SM3)
+            add_executable(hmac_sm3 examples/hmac_sm3.c)
+            target_link_libraries(hmac_sm3 LINK_PUBLIC tongsuo-mini)
+            set_property(TARGET hmac_sm3
+                PROPERTY RUNTIME_OUTPUT_DIRECTORY
+                ${CMAKE_CURRENT_BINARY_DIR}/examples)
+        endif(WITH_SM3)
+    endif(WITH_HMAC)
+endif()
+
 enable_testing()
 add_test(NAME test_minisuo
     COMMAND python3 -m pytest test_minisuo.py
@@ -189,6 +276,7 @@ message(STATUS "WITH_ASCON.................${WITH_ASCON}")
 message(STATUS "WITH_ASN1..................${WITH_ASN1}")
 message(STATUS "WITH_DEBUG.................${WITH_DEBUG}")
 message(STATUS "WITH_ERRSTR................${WITH_ERRSTR}")
+message(STATUS "WITH_EXAMPLE...............${WITH_EXAMPLE}")
 message(STATUS "WITH_HMAC..................${WITH_HMAC}")
 message(STATUS "WITH_LOG...................${WITH_LOG}")
 message(STATUS "WITH_OSCORE................${WITH_OSCORE}")

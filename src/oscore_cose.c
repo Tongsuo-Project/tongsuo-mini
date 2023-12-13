@@ -8,7 +8,9 @@
  */
 
 #include "internal/log.h"
+#include <tongsuo/minisuo.h>
 #include <tongsuo/ascon.h>
+#include <tongsuo/hmac.h>
 #include <tongsuo/oscore_cbor.h>
 #include <tongsuo/oscore_cose.h>
 #include <stdio.h>
@@ -105,13 +107,17 @@ const char *tsm_cose_get_hkdf_alg_name(cose_hkdf_alg_t id, char *buffer, size_t 
  */
 static struct hkdf_hmac_algs {
     cose_hkdf_alg_t hkdf_alg;
-    cose_hmac_alg_t hmac_alg;
-} hkdf_hmacs[] = {{COSE_HKDF_ALG_HKDF_SHA_256, COSE_HMAC_ALG_HMAC256_256},
-                  {COSE_HKDF_ALG_HKDF_SHA_512, COSE_HMAC_ALG_HMAC512_512},
-                  {COSE_HKDF_ALG_HKDF_ASCON_HASH, TSM_ASCON_AEAD_128},
-                  {COSE_HKDF_ALG_HKDF_ASCON_HASHA, TSM_ASCON_AEAD_128A}};
+    int hmac_alg;
+} hkdf_hmacs[] = {
+    /*
+    {COSE_HKDF_ALG_HKDF_SHA_256, COSE_HMAC_ALG_HMAC256_256},
+    {COSE_HKDF_ALG_HKDF_SHA_512, COSE_HMAC_ALG_HMAC512_512},
+    */
+    {COSE_HKDF_ALG_HKDF_ASCON_HASH, TSM_HASH_ASCON_HASH},
+    {COSE_HKDF_ALG_HKDF_ASCON_HASHA, TSM_HASH_ASCON_HASHA},
+};
 
-int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, cose_hmac_alg_t *hmac_alg)
+int tsm_cose_get_hmac_alg_for_hkdf(cose_hkdf_alg_t hkdf_alg, int *hmac_alg)
 {
     size_t idx;
 

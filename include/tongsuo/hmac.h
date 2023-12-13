@@ -21,10 +21,10 @@ extern "C" {
 void *tsm_hmac_ctx_new(void);
 /* Frees up the context ctx of HMAC. */
 void tsm_hmac_ctx_free(void *ctx);
-/* Initialize the HMAC context with the given key and key length. The meth sets the used hash
- * methods. For example, if you want to use ascon hash, the meth can be obtained by calling
- * tsm_ascon_hash_meth(). Returns TSM_OK for success and others for failure. */
-int tsm_hmac_init(void *ctx, const unsigned char *key, size_t keylen, void *meth);
+/* Initialize the HMAC context with the given key and key length. The hash_alg sets the used hash
+ * algorith.
+ * Returns TSM_OK on success, error code on failure. */
+int tsm_hmac_init(void *ctx, const unsigned char *key, size_t keylen, int hash_alg);
 /* Updates the HMAC context with the given data in and data length inlen. Returns TSM_OK for success
  * and others for failure. */
 int tsm_hmac_update(void *ctx, const unsigned char *in, size_t inlen);
@@ -32,10 +32,10 @@ int tsm_hmac_update(void *ctx, const unsigned char *in, size_t inlen);
  * outlen. Returns TSM_OK for success and others for failure. */
 int tsm_hmac_final(void *ctx, unsigned char *out, size_t *outlen);
 /* Computes the HMAC of the given data in and data length inlen with the given key and key length
- * keylen. The result is written to out. The length of the result is written to outl. The meth sets
- * the used hash methods. For example, if you want to use ascon hash, the meth can be obtained by
- * calling tsm_ascon_hash_meth(). Returns TSM_OK for success and others for failure. */
-int tsm_hmac_oneshot(void *meth, const unsigned char *key, size_t keylen, const unsigned char *in,
+ * keylen. The result is written to out. The length of the result is written to outl. The hash_alg
+ * sets the used hash algorithm, maybe TSM_HASH_SM3, TSM_HASH_ASCON_HASH or others. Returns
+ * TSM_OK for success and others for failure. */
+int tsm_hmac_oneshot(int hash_alg, const unsigned char *key, size_t keylen, const unsigned char *in,
                      size_t inlen, unsigned char *out, size_t *outl);
 
 # ifdef __cplusplus

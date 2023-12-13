@@ -117,7 +117,8 @@ int main(void)
 
         /* ASCON hash */
         start = get_time();
-        if (tsm_ascon_hash_oneshot(TSM_ASCON_HASH, rnd_data, inlen, ascon_md, &mdlen) != TSM_OK) {
+        if (tsm_ascon_hash_oneshot(TSM_HASH_ASCON_HASH, rnd_data, inlen, ascon_md, &mdlen)
+            != TSM_OK) {
             goto err;
         }
         end = get_time();
