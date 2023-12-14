@@ -1,6 +1,6 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8.8)
 
-PROJECT(tongsuo-mini)
+PROJECT(tongsuo-mini LANGUAGES C)
 
 if (MSVC)
     # warning level 4 and all warnings as errors

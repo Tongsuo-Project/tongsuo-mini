@@ -8,34 +8,6 @@ Tongsuo-mini can be used in constrained environment while requiring small memory
 
 Tongsuo-mini is a member project of the Tongsuo open source community.
 
-## Build Dependency
-
-Tongsuo-mini's build system depends on 'cmake' and it utilizes toolchain provided by Python for automated testing.
-
-* cmake
-* python
-  * pytest
-
-The installation of the dependency is very different in various operating systems. This is a typical example on macOS as follows (based on homebrew):
-
-~~~
-brew install cmake
-brew install python
-sudo pip3 install -r test/requirements.txt
-~~~
-
-## Build
-
-Use the 'cmake' to build Tongsuo-mini. Run the following steps after Tongsuo-mini has been cloned into a local directory (inside that dir):
-
-```bash
-mkdir build
-cd build
-cmake ..
-make
-make test
-```
-
 ## Feature
 
 Tongsuo-mini has the following features:
@@ -46,11 +18,58 @@ Tongsuo-mini has the following features:
   * ASCON HASH
 * Lightweight secure network protocol
   * OSCORE
-  * EDHOC
-*  Dynamic binary loading based on predication logic
+  * EDHOC\*
+* Dynamic binary loading based on predication logic\*
 * Oridnary cryptography algorithm
-  * Chinese Shangmi: SM2，SM3，SM4
-  * others: AES, SHA, RSA, ECDSA, EdDSA
-* Ordinary secure network protocol 
-  * TLS/DTLS
-  * TLCP
+  * Chinese Shangmi: SM2\*，SM3，SM4
+  * others\*: AES, SHA, RSA, ECDSA, EdDSA
+* Ordinary secure network protocol
+  * TLS\*
+  * TLCP\*
+
+Note: \* means the feature is under development
+
+## Build
+
+The build depends on cmake, make and C compiler (gcc or clang).
+Build tongsuo-mini from the source code as follows:
+
+```bash
+# Download source code
+git clone https://github.com/Tongsuo-Project/tongsuo-mini
+cd tongsuo-mini
+
+mkdir build
+cd build
+
+# Compile all modules with -DWITH_ALL=ON, compile specific module with -DWITH_<module>=ON, e.g. -DWITH_ASCON=ON
+# View all available compilation options, cmake -LH ..
+cmake -DWITH_ALL=ON ..
+make -j
+
+# If you need to install
+make install
+```
+
+## Test
+
+To test with Python3, create a virtual environment in the test directory and install the dependencies:
+
+```bash
+cd test
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r test/requirements.txt
+```
+
+Then run the command in the build directory:
+
+```bash
+ctest
+```
+
+Or run the command in the test directory:
+
+```bash
+pytest .
+```

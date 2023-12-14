@@ -7,7 +7,7 @@
 
 name: Compiler Zoo CI
 
-on: [push]
+on: [pull_request, push]
 
 permissions:
   contents: read
@@ -79,6 +79,7 @@ jobs:
 
     runs-on: ${{ matrix.zoo.distro }}
     steps:
+    - uses: actions/checkout@v3
     - name: install packages
       run: |
         llvm_ppa_name="${{ matrix.zoo.llvm-ppa-name }}"
@@ -104,16 +105,18 @@ jobs:
 
         sudo apt-get update
         sudo apt-get -y install ${{ matrix.zoo.cc }}
-        sudo apt-get -y install cmake python3 python3-pytest
-
-    - uses: actions/checkout@v3
+        sudo apt-get -y install cmake python3 python3-pip
     - name: Configure CMake
       run: cmake -B ${{github.workspace}}/build -D CMAKE_C_COMPILER=${{ matrix.zoo.cc }} -DWITH_ALL=ON
     - name: Build
       run: cmake --build ${{github.workspace}}/build
     - name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest -C ${{env.BUILD_TYPE}}
+      run: |
+        python3 -m venv ${{github.workspace}}/.venv
+        source ${{github.workspace}}/.venv/bin/activate
+        pip3 install -r ${{github.workspace}}/test/requirements.txt
+        ctest -C ${{env.BUILD_TYPE}}
     - name: debug
       if: ${{ failure() }}
       run: |

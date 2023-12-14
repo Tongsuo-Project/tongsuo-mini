@@ -307,8 +307,8 @@ static size_t oscore_cbor_skip_value(const uint8_t **data, size_t *buf_len)
 {
     uint8_t elem = tsm_oscore_cbor_get_next_element(data, buf_len);
     uint8_t control = get_byte(data, buf_len) & 0x1f;
-    size_t nb = 0; /* number of elements in array or map */
-    size_t num = 0; /* number of bytes of length or number */
+    size_t nb = 0;   /* number of elements in array or map */
+    size_t num = 0;  /* number of bytes of length or number */
     size_t size = 0; /* size of value to be skipped */
     if (control < 0x18) {
         num = 1;

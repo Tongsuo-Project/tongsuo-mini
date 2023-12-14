@@ -379,7 +379,7 @@ static int ascon_aead_handler(int argc, char **argv)
     }
 
     if (ad != NULL && strlen(ad) > 0) {
-        if (tsm_ascon_aead_update(ctx, (unsigned char*)ad, strlen(ad), NULL, NULL) != TSM_OK) {
+        if (tsm_ascon_aead_update(ctx, (unsigned char *)ad, strlen(ad), NULL, NULL) != TSM_OK) {
             goto end;
         }
     }
@@ -498,10 +498,9 @@ static cmd_handler cmds[] = {
     {"ascon-aead", ascon_aead_handler},
     {"ascon-hash", ascon_hash_handler},
 #endif
-    {"\0", NULL}
-};
+    {"\0", NULL}};
 
-#define N_CMD (int)(sizeof(cmds)/sizeof(cmds[0]))
+#define N_CMD (int)(sizeof(cmds) / sizeof(cmds[0]))
 
 void print_help(void)
 {

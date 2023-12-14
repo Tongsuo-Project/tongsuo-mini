@@ -173,7 +173,7 @@ int tsm_oscore_decode_option_value(const uint8_t *opt_value,
     }
 
     if ((opt_value[0] & 0x08) != 0) {
-        if (option_len - offset < 0) {
+        if (offset > option_len) {
             return TSM_FAILED;
         }
 

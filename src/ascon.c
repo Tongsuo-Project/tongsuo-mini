@@ -16,22 +16,22 @@
 #include "internal/log.h"
 #include "internal/meth.h"
 
-#define CRYPTO_VERSION       "1.2.7"
-#define CRYPTO_KEYBYTES      16
-#define CRYPTO_NSECBYTES     0
-#define CRYPTO_NPUBBYTES     16
-#define CRYPTO_ABYTES        16
-#define CRYPTO_NOOVERLAP     1
-#define ASCON_AEAD_RATE      8
+#define CRYPTO_VERSION        "1.2.7"
+#define CRYPTO_KEYBYTES       16
+#define CRYPTO_NSECBYTES      0
+#define CRYPTO_NPUBBYTES      16
+#define CRYPTO_ABYTES         16
+#define CRYPTO_NOOVERLAP      1
+#define ASCON_AEAD_RATE       8
 
 #define ASCON_128_KEYBYTES    TSM_ASCON_AEAD_KEY_LEN
 #define ASCON_128A_KEYBYTES   TSM_ASCON_AEAD_KEY_LEN
-#define ASCON_128_RATE       8
-#define ASCON_128A_RATE      16
-#define ASCON_128_PA_ROUNDS  12
-#define ASCON_128_PB_ROUNDS  6
-#define ASCON_128A_PA_ROUNDS 12
-#define ASCON_128A_PB_ROUNDS 8
+#define ASCON_128_RATE        8
+#define ASCON_128A_RATE       16
+#define ASCON_128_PA_ROUNDS   12
+#define ASCON_128_PB_ROUNDS   6
+#define ASCON_128A_PA_ROUNDS  12
+#define ASCON_128A_PB_ROUNDS  8
 
 #define ASCON_HASH_RATE       8
 #define ASCON_HASH_PA_ROUNDS  12
@@ -40,22 +40,22 @@
 #define ASCON_HASHA_PB_ROUNDS 8
 
 #define ASCON_128_IV                                                                               \
- (((uint64_t)(ASCON_128_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128_RATE * 8) << 48)              \
-  | ((uint64_t)(ASCON_128_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128_PB_ROUNDS) << 32))
+    (((uint64_t)(ASCON_128_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128_RATE * 8) << 48)           \
+     | ((uint64_t)(ASCON_128_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128_PB_ROUNDS) << 32))
 
 #define ASCON_128A_IV                                                                              \
- (((uint64_t)(ASCON_128A_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128A_RATE * 8) << 48)            \
-  | ((uint64_t)(ASCON_128A_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128A_PB_ROUNDS) << 32))
+    (((uint64_t)(ASCON_128A_KEYBYTES * 8) << 56) | ((uint64_t)(ASCON_128A_RATE * 8) << 48)         \
+     | ((uint64_t)(ASCON_128A_PA_ROUNDS) << 40) | ((uint64_t)(ASCON_128A_PB_ROUNDS) << 32))
 
 #define ASCON_HASH_IV                                                                              \
- (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASH_PA_ROUNDS) << 40)               \
-  | ((uint64_t)(ASCON_HASH_PA_ROUNDS - ASCON_HASH_PB_ROUNDS) << 32)                                \
-  | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
+    (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASH_PA_ROUNDS) << 40)            \
+     | ((uint64_t)(ASCON_HASH_PA_ROUNDS - ASCON_HASH_PB_ROUNDS) << 32)                             \
+     | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
 
 #define ASCON_HASHA_IV                                                                             \
- (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASHA_PA_ROUNDS) << 40)              \
-  | ((uint64_t)(ASCON_HASHA_PA_ROUNDS - ASCON_HASHA_PB_ROUNDS) << 32)                              \
-  | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
+    (((uint64_t)(ASCON_HASH_RATE * 8) << 48) | ((uint64_t)(ASCON_HASHA_PA_ROUNDS) << 40)           \
+     | ((uint64_t)(ASCON_HASHA_PA_ROUNDS - ASCON_HASHA_PB_ROUNDS) << 32)                           \
+     | ((uint64_t)(TSM_ASCON_HASH_LEN * 8) << 0))
 
 /* get byte from 64-bit Ascon word */
 #define GETBYTE(x, i) ((uint8_t)((uint64_t)(x) >> (56 - 8 * (i))))
@@ -73,7 +73,7 @@ static void printstate(const char *label, ascon_state_t *s)
          s->x[2], s->x[3], s->x[4]);
 }
 #else
-#define printstate(...)
+# define printstate(...)
 #endif
 
 /* load bytes into 64-bit Ascon word */

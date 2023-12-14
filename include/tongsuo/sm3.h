@@ -17,7 +17,7 @@ extern "C" {
 
 # include <stdlib.h>
 
-# define TSM_SM3_DIGEST_LEN  32
+# define TSM_SM3_DIGEST_LEN 32
 
 /* Create a new context of sm3. The context should be freed by calling tsm_sm3_ctx_free() after use.
  */

@@ -11,6 +11,7 @@
 # define TSM_INTERNAL_METH_H
 # pragma once
 
+# include <stdint.h>
 # include <stdlib.h>
 
 typedef struct {

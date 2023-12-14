@@ -17,15 +17,15 @@ extern "C" {
 
 # include <stdlib.h>
 
-# define TSM_ASCON_AEAD_128       0x1
-# define TSM_ASCON_AEAD_128A      0x2
+# define TSM_ASCON_AEAD_128     0x1
+# define TSM_ASCON_AEAD_128A    0x2
 
-# define TSM_ASCON_AEAD_TAG_LEN   16
-# define TSM_ASCON_AEAD_KEY_LEN   16
-# define TSM_ASCON_AEAD_IV_LEN    16
+# define TSM_ASCON_AEAD_TAG_LEN 16
+# define TSM_ASCON_AEAD_KEY_LEN 16
+# define TSM_ASCON_AEAD_IV_LEN  16
 
-# define TSM_ASCON_HASH_LEN       32
-# define TSM_ASCON_HMAC_LEN       TSM_ASCON_HASH_LEN
+# define TSM_ASCON_HASH_LEN     32
+# define TSM_ASCON_HMAC_LEN     TSM_ASCON_HASH_LEN
 
 /* Create a new context of ascon aead, should be freed by tsm_ascon_aead_ctx_free() after use. */
 void *tsm_ascon_aead_ctx_new(void);

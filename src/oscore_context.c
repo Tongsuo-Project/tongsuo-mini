@@ -128,9 +128,9 @@ oscore_recipient_ctx_t *tsm_oscore_find_recipient(const oscore_ctx_t *osc_ctx,
 static void oscore_convert_to_hex(const uint8_t *src, size_t src_len, char *dest, size_t dst_len)
 {
     /*
-   * Last output character will be '\000'
-   * (If output undersized, add trailing ... to indicate this.
-   */
+     * Last output character will be '\000'
+     * (If output undersized, add trailing ... to indicate this.
+     */
     size_t space = (dst_len - 4) / 3;
     uint32_t qq;
 
@@ -331,11 +331,11 @@ oscore_ctx_t *tsm_oscore_ctx_dup(oscore_ctx_t *o_osc_ctx,
     }
 
     /*
-   * Need to set the last Sender Seq Num based on ssn_freq
-   * The value should only change if there is a change to ssn_freq
-   * and (potentially) be lower than seq, then save_seq_num_func() is
-   * immediately called on next SSN update.
-   */
+     * Need to set the last Sender Seq Num based on ssn_freq
+     * The value should only change if there is a change to ssn_freq
+     * and (potentially) be lower than seq, then save_seq_num_func() is
+     * immediately called on next SSN update.
+     */
     sender_ctx->next_seq = 0;
     sender_ctx->seq = 0;
 
@@ -409,11 +409,11 @@ oscore_ctx_t *tsm_oscore_ctx_new(TSM_OSCORE_CONF *oscore_conf)
     }
 
     /*
-   * Need to set the last Sender Seq Num based on ssn_freq
-   * The value should only change if there is a change to ssn_freq
-   * and (potentially) be lower than seq, then save_seq_num_func() is
-   * immediately called on next SSN update.
-   */
+     * Need to set the last Sender Seq Num based on ssn_freq
+     * The value should only change if there is a change to ssn_freq
+     * and (potentially) be lower than seq, then save_seq_num_func() is
+     * immediately called on next SSN update.
+     */
     sender_ctx->next_seq =
         oscore_conf->start_seq_num
         - (oscore_conf->start_seq_num % (oscore_conf->ssn_freq > 0 ? oscore_conf->ssn_freq : 1));

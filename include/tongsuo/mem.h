@@ -16,6 +16,7 @@ extern "C" {
 # endif
 
 # include <stdlib.h>
+# include <stdint.h>
 
 # pragma pack(1)
 typedef struct tsm_str_s {
