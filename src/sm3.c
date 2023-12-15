@@ -24,48 +24,47 @@
 #define SM3_G 0xe38dee4dUL
 #define SM3_H 0xb0fb0e4eUL
 
-#define HOST_c2l(c,l)  (l =(((unsigned long)(*((c)++)))<<24),          \
-                        l|=(((unsigned long)(*((c)++)))<<16),          \
-                        l|=(((unsigned long)(*((c)++)))<< 8),          \
-                        l|=(((unsigned long)(*((c)++)))    )           )
-#define HOST_l2c(l,c)  (*((c)++)=(unsigned char)(((l)>>24)&0xff),      \
-                        *((c)++)=(unsigned char)(((l)>>16)&0xff),      \
-                        *((c)++)=(unsigned char)(((l)>> 8)&0xff),      \
-                        *((c)++)=(unsigned char)(((l)    )&0xff),      \
-                        l)
+#define HOST_c2l(c, l)                                                                             \
+    (l = (((unsigned long)(*((c)++))) << 24),                                                      \
+     l |= (((unsigned long)(*((c)++))) << 16),                                                     \
+     l |= (((unsigned long)(*((c)++))) << 8),                                                      \
+     l |= (((unsigned long)(*((c)++)))))
+#define HOST_l2c(l, c)                                                                             \
+    (*((c)++) = (unsigned char)(((l) >> 24) & 0xff),                                               \
+     *((c)++) = (unsigned char)(((l) >> 16) & 0xff),                                               \
+     *((c)++) = (unsigned char)(((l) >> 8) & 0xff),                                                \
+     *((c)++) = (unsigned char)(((l)) & 0xff),                                                     \
+     l)
 
-#define ROTATE(a,n)     (((a)<<(n))|(((a)&0xffffffff)>>(32-(n))))
+#define ROTATE(a, n)                 (((a) << (n)) | (((a) & 0xffffffff) >> (32 - (n))))
 
-#define P0(X) (X ^ ROTATE(X, 9) ^ ROTATE(X, 17))
-#define P1(X) (X ^ ROTATE(X, 15) ^ ROTATE(X, 23))
+#define P0(X)                        (X ^ ROTATE(X, 9) ^ ROTATE(X, 17))
+#define P1(X)                        (X ^ ROTATE(X, 15) ^ ROTATE(X, 23))
 
-#define FF0(X,Y,Z) (X ^ Y ^ Z)
-#define GG0(X,Y,Z) (X ^ Y ^ Z)
+#define FF0(X, Y, Z)                 (X ^ Y ^ Z)
+#define GG0(X, Y, Z)                 (X ^ Y ^ Z)
 
-#define FF1(X,Y,Z) ((X & Y) | ((X | Y) & Z))
-#define GG1(X,Y,Z) ((Z ^ (X & (Y ^ Z))))
+#define FF1(X, Y, Z)                 ((X & Y) | ((X | Y) & Z))
+#define GG1(X, Y, Z)                 ((Z ^ (X & (Y ^ Z))))
 
-#define EXPAND(W0,W7,W13,W3,W10) \
-   (P1(W0 ^ W7 ^ ROTATE(W13, 15)) ^ ROTATE(W3, 7) ^ W10)
+#define EXPAND(W0, W7, W13, W3, W10) (P1(W0 ^ W7 ^ ROTATE(W13, 15)) ^ ROTATE(W3, 7) ^ W10)
 
-#define RND(A, B, C, D, E, F, G, H, TJ, Wi, Wj, FF, GG)           \
-     do {                                                         \
-       const unsigned int A12 = ROTATE(A, 12);                        \
-       const unsigned int A12_SM = A12 + E + TJ;                      \
-       const unsigned int SS1 = ROTATE(A12_SM, 7);                    \
-       const unsigned int TT1 = FF(A, B, C) + D + (SS1 ^ A12) + (Wj); \
-       const unsigned int TT2 = GG(E, F, G) + H + SS1 + Wi;           \
-       B = ROTATE(B, 9);                                          \
-       D = TT1;                                                   \
-       F = ROTATE(F, 19);                                         \
-       H = P0(TT2);                                               \
-     } while(0)
+#define RND(A, B, C, D, E, F, G, H, TJ, Wi, Wj, FF, GG)                                            \
+    do {                                                                                           \
+        const unsigned int A12 = ROTATE(A, 12);                                                    \
+        const unsigned int A12_SM = A12 + E + TJ;                                                  \
+        const unsigned int SS1 = ROTATE(A12_SM, 7);                                                \
+        const unsigned int TT1 = FF(A, B, C) + D + (SS1 ^ A12) + (Wj);                             \
+        const unsigned int TT2 = GG(E, F, G) + H + SS1 + Wi;                                       \
+        B = ROTATE(B, 9);                                                                          \
+        D = TT1;                                                                                   \
+        F = ROTATE(F, 19);                                                                         \
+        H = P0(TT2);                                                                               \
+    } while (0)
 
-#define R1(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
-   RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF0,GG0)
+#define R1(A, B, C, D, E, F, G, H, TJ, Wi, Wj) RND(A, B, C, D, E, F, G, H, TJ, Wi, Wj, FF0, GG0)
 
-#define R2(A,B,C,D,E,F,G,H,TJ,Wi,Wj) \
-   RND(A,B,C,D,E,F,G,H,TJ,Wi,Wj,FF1,GG1)
+#define R2(A, B, C, D, E, F, G, H, TJ, Wi, Wj) RND(A, B, C, D, E, F, G, H, TJ, Wi, Wj, FF1, GG1)
 
 void *tsm_sm3_ctx_new(void)
 {
@@ -115,11 +114,9 @@ void tsm_sm3_transform(void *c, const unsigned char *p, size_t num)
     const unsigned char *data = p;
     register unsigned int A, B, C, D, E, F, G, H;
 
-    unsigned int W00, W01, W02, W03, W04, W05, W06, W07,
-        W08, W09, W10, W11, W12, W13, W14, W15;
+    unsigned int W00, W01, W02, W03, W04, W05, W06, W07, W08, W09, W10, W11, W12, W13, W14, W15;
 
     for (; num--;) {
-
         A = ctx->A;
         B = ctx->B;
         C = ctx->C;
@@ -130,9 +127,9 @@ void tsm_sm3_transform(void *c, const unsigned char *p, size_t num)
         H = ctx->H;
 
         /*
-        * We have to load all message bytes immediately since SM3 reads
-        * them slightly out of order.
-        */
+         * We have to load all message bytes immediately since SM3 reads
+         * them slightly out of order.
+         */
         (void)HOST_c2l(data, W00);
         (void)HOST_c2l(data, W01);
         (void)HOST_c2l(data, W02);
@@ -289,10 +286,10 @@ int tsm_sm3_update(void *ctx, const unsigned char *data, size_t len)
         return TSM_OK;
 
     l = (c->Nl + (((unsigned int)len) << 3)) & 0xffffffffUL;
-    if (l < c->Nl)              /* overflow */
+    if (l < c->Nl) /* overflow */
         c->Nh++;
     c->Nh += (unsigned int)(len >> 29); /* might cause compiler warning on
-                                       * 16-bit */
+                                         * 16-bit */
     c->Nl = l;
 
     n = c->num;
@@ -355,21 +352,21 @@ int tsm_sm3_final(void *ctx, unsigned char *md, size_t *mdlen)
     c->num = 0;
     tsm_memzero(p, TSM_SM3_CBLOCK);
 
-    ll=c->A;
+    ll = c->A;
     (void)HOST_l2c(ll, md);
-    ll=c->B;
+    ll = c->B;
     (void)HOST_l2c(ll, md);
-    ll=c->C;
+    ll = c->C;
     (void)HOST_l2c(ll, md);
-    ll=c->D;
+    ll = c->D;
     (void)HOST_l2c(ll, md);
-    ll=c->E;
+    ll = c->E;
     (void)HOST_l2c(ll, md);
-    ll=c->F;
+    ll = c->F;
     (void)HOST_l2c(ll, md);
-    ll=c->G;
+    ll = c->G;
     (void)HOST_l2c(ll, md);
-    ll=c->H;
+    ll = c->H;
     (void)HOST_l2c(ll, md);
 
     if (mdlen)

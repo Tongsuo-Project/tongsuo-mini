@@ -24,7 +24,7 @@ typedef struct tsm_sm4_ctx_s {
     unsigned char block_size;
     unsigned char iv_len;
     unsigned char iv[TSM_MAX_IV_LENGTH];
-    int buf_len; /* number we have left */
+    int buf_len;                             /* number we have left */
     unsigned char buf[TSM_MAX_BLOCK_LENGTH]; /* saved partial block */
     int final_used;
     unsigned char final[TSM_MAX_BLOCK_LENGTH]; /* possible final block */

@@ -14,7 +14,7 @@ import pytest
         ("ascon-hmaca", "test_hmac_data/ascon_hmaca.txt"),
     ],
 )
-def test_ascon_hmac(algo, kat_file, subtests):
+def test_hmac_ascon(algo, kat_file, subtests):
     with open(kat_file) as f:
         tb = {}
 
@@ -31,7 +31,7 @@ def test_ascon_hmac(algo, kat_file, subtests):
             if "Count" in tb and "Msg" in tb and "Key" in tb and "Tag" in tb:
                 with subtests.test(i=tb["Count"]):
                     tf.ok(
-                        "test_ascon_hmac -algo {} -key {} -msg {} -tag {}".format(
+                        "test_hmac_ascon -algo {} -key {} -msg {} -tag {}".format(
                             algo, tb["Key"], tb["Msg"], tb["Tag"]
                         )
                     )

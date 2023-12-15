@@ -258,12 +258,12 @@ static int sm4_set_key(const uint8_t *key, uint32_t rk[SM4_KEY_SCHEDULE])
 }
 
 #define SM4_RNDS(k0, k1, k2, k3, F)                                                                \
- do {                                                                                              \
-  B0 ^= F(B1 ^ B2 ^ B3 ^ rk[k0]);                                                                  \
-  B1 ^= F(B0 ^ B2 ^ B3 ^ rk[k1]);                                                                  \
-  B2 ^= F(B0 ^ B1 ^ B3 ^ rk[k2]);                                                                  \
-  B3 ^= F(B0 ^ B1 ^ B2 ^ rk[k3]);                                                                  \
- } while (0)
+    do {                                                                                           \
+        B0 ^= F(B1 ^ B2 ^ B3 ^ rk[k0]);                                                            \
+        B1 ^= F(B0 ^ B2 ^ B3 ^ rk[k1]);                                                            \
+        B2 ^= F(B0 ^ B1 ^ B3 ^ rk[k2]);                                                            \
+        B3 ^= F(B0 ^ B1 ^ B2 ^ rk[k3]);                                                            \
+    } while (0)
 
 static void sm4_encrypt(const uint8_t *in, uint8_t *out, uint32_t rk[SM4_KEY_SCHEDULE])
 {
@@ -448,7 +448,7 @@ static int tsm_sm4_crypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, size_
      * CCM mode needs to know about the case where inl == 0 && in == NULL - it
      * means the plaintext/ciphertext length is 0
      */
-    if (inl < 0 || (inl == 0 && ctx->mode != TSM_CIPH_MODE_CCM)) {
+    if (inl == 0 && ctx->mode != TSM_CIPH_MODE_CCM) {
         *outl = 0;
         return inl == 0 ? TSM_OK : TSM_FAILED;
     }
@@ -526,7 +526,7 @@ static int tsm_sm4_decrypt_update(TSM_SM4_CTX *ctx, const unsigned char *in, siz
      * CCM mode needs to know about the case where inl == 0 - it means the
      * plaintext/ciphertext length is 0
      */
-    if (inl < 0 || (inl == 0 && ctx->mode != TSM_CIPH_MODE_CCM)) {
+    if (inl == 0 && ctx->mode != TSM_CIPH_MODE_CCM) {
         *outl = 0;
         return inl == 0 ? TSM_OK : TSM_FAILED;
     }

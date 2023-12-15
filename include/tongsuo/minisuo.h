@@ -17,11 +17,11 @@ extern "C" {
 
 # include <stdlib.h>
 
-# define TONGSUO_IS_MINI       1
+# define TONGSUO_IS_MINI   1
 
-# define TSM_VERSION_MAJOR     0
-# define TSM_VERSION_MINOR     9
-# define TSM_VERSION_PATCH     0
+# define TSM_VERSION_MAJOR 0
+# define TSM_VERSION_MINOR 9
+# define TSM_VERSION_PATCH 0
 /* 0x00, dev
  * 0x1~0xfe, pre1~pre254
  * 0xff, release */

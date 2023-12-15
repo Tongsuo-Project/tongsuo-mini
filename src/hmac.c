@@ -14,8 +14,8 @@
 #include <tongsuo/mem.h>
 #include <string.h>
 
-#define HMAC_IPAD       0x36
-#define HMAC_OPAD       0x5C
+#define HMAC_IPAD 0x36
+#define HMAC_OPAD 0x5C
 
 /* The current largest case is for SHA3-224 */
 #define HMAC_MAX_MD_CBLOCK_SIZE 144

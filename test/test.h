@@ -41,15 +41,15 @@
 
 # define TESTS(...) RUN_TESTS(__VA_ARGS__, __FILE__, __LINE__)
 # define RUN_TESTS(func, n, file, line)                                                            \
-  for (int i = 0; i < n; i++) {                                                                    \
-   int ret = func(i);                                                                              \
-   if (ret) {                                                                                      \
-    fprintf(stderr, "Failed\t%s(%d)\t%s:%d\n", #func, i, file, line);                              \
-    return ret;                                                                                    \
-   } else {                                                                                        \
-    fprintf(stderr, "Passed\t%s(%d)\t%s:%d\n", #func, i, file, line);                              \
-   }                                                                                               \
-  }
+     for (int i = 0; i < n; i++) {                                                                 \
+         int ret = func(i);                                                                        \
+         if (ret) {                                                                                \
+             fprintf(stderr, "Failed\t%s(%d)\t%s:%d\n", #func, i, file, line);                     \
+             return ret;                                                                           \
+         } else {                                                                                  \
+             fprintf(stderr, "Passed\t%s(%d)\t%s:%d\n", #func, i, file, line);                     \
+         }                                                                                         \
+     }
 
 # define ASSERT(exp)     TEST_ASSERT((exp), __FILE__, __LINE__)
 # define ASSERT_0(ret)   TEST_ASSERT(((ret) == 0), __FILE__, __LINE__)

@@ -59,6 +59,7 @@ static TSM_HASH_METH tsm_sm3_meth = {
 
 void *tsm_get_hash_meth(int alg)
 {
+    (void)alg;
 #ifdef TSM_HAVE_SM3
     if (alg == TSM_HASH_SM3)
         return &tsm_sm3_meth;

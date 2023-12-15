@@ -18,11 +18,11 @@ extern "C" {
 # include <stdint.h>
 # include <tongsuo/mem.h>
 
-# define AES_CCM_TAG 16
+# define AES_CCM_TAG                                    16
 
-# define COSE_ALGORITHM_ED25519_SIG_LEN              64
-# define COSE_ALGORITHM_ED25519_PRIV_KEY_LEN         32
-# define COSE_ALGORITHM_ED25519_PUB_KEY_LEN          32
+# define COSE_ALGORITHM_ED25519_SIG_LEN                 64
+# define COSE_ALGORITHM_ED25519_PRIV_KEY_LEN            32
+# define COSE_ALGORITHM_ED25519_PUB_KEY_LEN             32
 
 # define COSE_ALGORITHM_ASCON_AEAD_16_128_128_KEY_LEN   16
 # define COSE_ALGORITHM_ASCON_AEAD_16_128_128_NONCE_LEN 16
@@ -93,7 +93,7 @@ typedef enum {
     COSE_ALGORITHM_HKDF_SHA_512 = -11,
     COSE_ALGORITHM_HKDF_SHA_256 = -10,
     COSE_ALGORITHM_EDDSA = -8,
-    COSE_ALGORITHM_ES256 = -7, /* with ECC known as secp256r1 */
+    COSE_ALGORITHM_ES256 = -7,     /* with ECC known as secp256r1 */
     COSE_ALGORITHM_HMAC256_64 = 4, /* truncated to 64 bits */
     COSE_ALGORITHM_HMAC256_256 = 5,
     COSE_ALGORITHM_HMAC384_384 = 6,

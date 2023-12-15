@@ -1,27 +1,43 @@
-## Build Dependency
-
-Tongsuo-mini's build system depends on 'cmake' and it utilizes toolchain provided by Python for automated testing.
-
-* cmake
-* python
-  * pytest
-
-The installation of the dependency is very different in various operating systems. This is a typical example on macOS as follows (based on homebrew):
-
-~~~
-brew install cmake
-brew install python
-sudo pip3 install -r test/requirements.txt
-~~~
-
 ## Build
 
-Use the 'cmake' to build Tongsuo-mini. Run the following steps after Tongsuo-mini has been cloned into a local directory (inside that dir):
+The build depends on cmake, make and C compiler (gcc or clang).
+Build tongsuo-mini from the source code as follows:
 
 ```bash
+# Download source code
+git clone https://github.com/Tongsuo-Project/tongsuo-mini
+cd tongsuo-mini
+
 mkdir build
 cd build
-cmake ..
-make
-make test
+
+# Compile all modules with -DWITH_ALL=ON, compile specific module with -DWITH_<module>=ON, e.g. -DWITH_ASCON=ON
+cmake -DWITH_ALL=ON ..
+make -j
+
+# If you need to install
+make install
+```
+
+## Test
+
+To test with Python3, create a virtual environment in the test directory and install the dependencies:
+
+```bash
+cd test
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r test/requirements.txt
+```
+
+Then run the command in the build directory:
+
+```bash
+ctest
+```
+
+Or run the command in the test directory:
+
+```bash
+pytest .
 ```
