@@ -21,12 +21,12 @@
 # define ASCON_PHASE_FINAL 4
 
 # pragma pack(1)
-typedef struct {
+typedef struct tsm_ascon_state_st {
     uint64_t x[5];
-} ascon_state_t;
+} TSM_ASCON_STATE;
 
 typedef struct tsm_ascon_aead_ctx_st {
-    ascon_state_t s;
+    TSM_ASCON_STATE s;
     uint64_t K[2];
     uint64_t N[2];
     uint8_t mode;
@@ -41,7 +41,7 @@ typedef struct tsm_ascon_aead_ctx_st {
 } TSM_ASCON_AEAD_CTX;
 
 typedef struct tsm_ascon_hash_ctx_st {
-    ascon_state_t s;
+    TSM_ASCON_STATE s;
     uint8_t alg;
     uint8_t buf_len;
     unsigned char buf[8]; /* saved partial block */
