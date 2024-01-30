@@ -10,8 +10,8 @@ import pytest
 @pytest.mark.parametrize(
     "scheme, kat_file",
     [
-        ("ascon128", "test_ascon_data/ascon128_aead.txt"),
-        ("ascon128a", "test_ascon_data/ascon128a_aead.txt"),
+        ("ascon128", "test_ascon_data/ascon_aead128.txt"),
+        ("ascon128a", "test_ascon_data/ascon_aead128a.txt"),
     ],
 )
 def test_ascon_aead(scheme, kat_file, subtests):
