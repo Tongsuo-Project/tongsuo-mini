@@ -59,7 +59,7 @@ To test with Python3, create a virtual environment in the test directory and ins
 cd test
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r test/requirements.txt
+pip3 install -r requirements.txt
 ```
 
 Then run the command in the build directory:

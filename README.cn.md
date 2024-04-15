@@ -55,7 +55,7 @@ make install
 cd test
 python3 -m venv .venv
 source .venv/bin/activate
-pip3 install -r test/requirements.txt
+pip3 install -r requirements.txt
 ```
 
 然后在build目录下执行：
